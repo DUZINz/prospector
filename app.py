@@ -7,6 +7,7 @@ Rodar:  streamlit run app.py
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from io import BytesIO
@@ -16,7 +17,7 @@ import pandas as pd
 import streamlit as st
 
 from prospector import storage
-from prospector.models import Lead
+from prospector.models import Lead, formatar_telefone
 
 RAIZ = Path(__file__).resolve().parent
 
@@ -46,9 +47,13 @@ def rodar_busca(termo: str, regiao: str, maximo: int, apenas_sem_site: bool, vis
     if visivel:
         cmd.append("--visivel")
 
+    # PYTHONIOENCODING: sem isso o subprocesso escreve em cp1252 no Windows e os
+    # acentos chegam como "Escrit?rio". O `encoding=` abaixo so decodifica.
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+
     proc = subprocess.Popen(
         cmd, cwd=str(RAIZ), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, encoding="utf-8", errors="replace", bufsize=1,
+        text=True, encoding="utf-8", errors="replace", bufsize=1, env=env,
     )
 
     leads: list[Lead] = []
@@ -186,6 +191,9 @@ COLUNAS = [
     "nota", "avaliacoes", "status", "observacoes", "maps_url", "place_key",
 ]
 visao = df[COLUNAS].copy()
+visao["telefone"] = [
+    formatar_telefone(e, b) for e, b in zip(df["telefone_e164"], df["telefone"])
+]
 
 editado = st.data_editor(
     visao,

@@ -26,22 +26,29 @@ def so_digitos(texto: Optional[str]) -> str:
     return re.sub(r"\D", "", texto or "")
 
 
-def normalizar_telefone(bruto: Optional[str]) -> tuple[str, str]:
+# Numeros de servico: nao tem DDD e nao existem no WhatsApp.
+PREFIXOS_SERVICO = ("0800", "0300", "0500", "0900", "4004", "3003", "4003", "4003")
+
+
+def normalizar_telefone(bruto):
     """Devolve (e164, whatsapp_url). Strings vazias se o numero nao for utilizavel.
 
-    Aceita os formatos que o Maps devolve: "(41) 99999-8888", "+55 41 3333-2222",
-    "0800 123 4567".
+    Aceita tudo que o Maps devolve: "(41) 99999-8888", "+55 41 3333-2222",
+    "0 41 3262-7373" (com o 0 de prefixo nacional), "0800 123 4567".
     """
     d = so_digitos(bruto)
     if not d:
         return "", ""
 
+    if d.startswith(PREFIXOS_SERVICO):
+        return d, ""
+
+    # Prefixo nacional/operadora ("0 41 ...", "015 41 ..."): descartavel.
+    d = d.lstrip("0")
+
+    # Codigo do pais, com ou sem o 0 que ja tiramos acima.
     if d.startswith("55") and len(d) in (12, 13):
         d = d[2:]
-
-    # 0800/0300 e afins: nao tem DDD e nao vai pro WhatsApp.
-    if d.startswith("0"):
-        return d, ""
 
     if len(d) not in (10, 11):
         return "", ""
@@ -49,9 +56,24 @@ def normalizar_telefone(bruto: Optional[str]) -> tuple[str, str]:
         return "", ""
 
     e164 = f"+55{d}"
-    # Celular (9 digitos apos o DDD) e o unico que faz sentido no WhatsApp.
+    # Celular (9 digitos apos o DDD, comecando em 9) e o unico que vai pro WhatsApp.
     whats = f"https://wa.me/55{d}" if len(d) == 11 and d[2] == "9" else ""
     return e164, whats
+
+
+def formatar_telefone(e164, bruto=""):
+    """'+5541998941500' -> '(41) 99894-1500'. Cai no valor bruto se nao der."""
+    # So formata numero geografico (o normalizador marca esses com "+").
+    if not (e164 or "").startswith("+"):
+        return bruto or e164 or ""
+    d = so_digitos(e164)
+    if d.startswith("55") and len(d) in (12, 13):
+        d = d[2:]
+    if len(d) == 11:
+        return f"({d[:2]}) {d[2:7]}-{d[7:]}"
+    if len(d) == 10:
+        return f"({d[:2]}) {d[2:6]}-{d[6:]}"
+    return bruto or e164 or ""
 
 
 def extrair_place_key(maps_url: str, nome: str, endereco: str) -> str:

@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 from typing import Iterable
 
-from .models import Lead
+from .models import Lead, normalizar_telefone
 
 BANCO = Path(__file__).resolve().parent.parent / "leads.db"
 
@@ -44,7 +44,35 @@ def conectar(caminho: Path | str = BANCO) -> sqlite3.Connection:
     con = sqlite3.connect(str(caminho), check_same_thread=False)
     con.row_factory = sqlite3.Row
     con.executescript(SCHEMA)
+    reparar_telefones(con)
     return con
+
+
+def reparar_telefones(con: sqlite3.Connection) -> int:
+    """Recalcula e164/whatsapp a partir do telefone bruto ja salvo.
+
+    Existe porque a normalizacao mudou depois que leads ja tinham sido gravados
+    (numeros com o 0 de prefixo nacional perdiam o WhatsApp). Roda na abertura,
+    e so escreve nas linhas em que o resultado realmente muda.
+    """
+    linhas = con.execute(
+        "SELECT place_key, telefone, telefone_e164, whatsapp FROM leads"
+    ).fetchall()
+
+    corrigidos = 0
+    for r in linhas:
+        e164, whats = normalizar_telefone(r["telefone"])
+        if e164 == (r["telefone_e164"] or "") and whats == (r["whatsapp"] or ""):
+            continue
+        con.execute(
+            "UPDATE leads SET telefone_e164=?, whatsapp=? WHERE place_key=?",
+            (e164, whats, r["place_key"]),
+        )
+        corrigidos += 1
+
+    if corrigidos:
+        con.commit()
+    return corrigidos
 
 
 def salvar(con: sqlite3.Connection, leads: Iterable[Lead]) -> tuple[int, int]:
