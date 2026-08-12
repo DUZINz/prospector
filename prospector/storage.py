@@ -38,7 +38,10 @@ CREATE INDEX IF NOT EXISTS idx_leads_regiao ON leads(regiao);
 
 
 def conectar(caminho: Path | str = BANCO) -> sqlite3.Connection:
-    con = sqlite3.connect(str(caminho))
+    # check_same_thread=False: o Streamlit reusa a conexao (@st.cache_resource)
+    # entre threads diferentes de script run. O acesso e serializado pelo proprio
+    # Streamlit, que roda um script por vez por sessao.
+    con = sqlite3.connect(str(caminho), check_same_thread=False)
     con.row_factory = sqlite3.Row
     con.executescript(SCHEMA)
     return con
