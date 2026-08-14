@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Barbearia Malandro — Corte, Barba e Navalha</title>
+<meta name="description" content="Barbearia Malandro. Corte, barba e combo com hora marcada pelo WhatsApp. Rua Tal, 123." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="#" class="header__logo">MALANDRO<span>.</span></a>
+    <button class="header__burger" id="burger" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="header__nav" id="nav">
+      <a href="#servicos">Serviços</a>
+      <a href="#horario">Horário</a>
+      <a href="#local">Endereço</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="hero__img">
+      <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1400&q=75" alt="Corte de cabelo sendo finalizado na Barbearia Malandro" loading="eager" />
+    </div>
+    <div class="hero__conteudo">
+      <p class="hero__tag">Barba, corte e navalha — sem hora marcada de sofrimento</p>
+      <h1 class="hero__titulo">CORTE NA<br />NAVALHA,<br /><span>SEM ENROLAÇÃO</span></h1>
+      <p class="hero__sub">Rua dos Andradas, 456 — Centro. Agenda pelo WhatsApp, chega e senta na cadeira.</p>
+      <a href="#" class="btn btn--marcar" data-whatsapp-link>Marcar horário no zap →</a>
+    </div>
+  </section>
+
+  <section class="tira" aria-hidden="true">
+    <div class="tira__faixa">
+      <span>DEGRADÊ</span><span>NAVALHA</span><span>BARBA</span><span>SOBRANCELHA</span>
+      <span>DEGRADÊ</span><span>NAVALHA</span><span>BARBA</span><span>SOBRANCELHA</span>
+    </div>
+  </section>
+
+  <section class="servicos" id="servicos">
+    <h2 class="secao__titulo">O que sai da cadeira</h2>
+    <ul class="servicos__lista">
+      <li class="servicos__item">
+        <div class="servicos__nome">
+          <span>Corte Degradê</span>
+          <span class="servicos__pontos"></span>
+        </div>
+        <span class="servicos__preco">R$ 45</span>
+      </li>
+      <li class="servicos__item">
+        <div class="servicos__nome">
+          <span>Barba na Navalha</span>
+          <span class="servicos__pontos"></span>
+        </div>
+        <span class="servicos__preco">R$ 35</span>
+      </li>
+      <li class="servicos__item">
+        <div class="servicos__nome">
+          <span>Combo Corte + Barba</span>
+          <span class="servicos__pontos"></span>
+        </div>
+        <span class="servicos__preco">R$ 70</span>
+      </li>
+      <li class="servicos__item">
+        <div class="servicos__nome">
+          <span>Sobrancelha na Navalha</span>
+          <span class="servicos__pontos"></span>
+        </div>
+        <span class="servicos__preco">R$ 15</span>
+      </li>
+      <li class="servicos__item">
+        <div class="servicos__nome">
+          <span>Corte Infantil (até 10 anos)</span>
+          <span class="servicos__pontos"></span>
+        </div>
+        <span class="servicos__preco">R$ 35</span>
+      </li>
+      <li class="servicos__item servicos__item--destaque">
+        <div class="servicos__nome">
+          <span>Combo Completo <em>(corte + barba + sobrancelha)</em></span>
+          <span class="servicos__pontos"></span>
+        </div>
+        <span class="servicos__preco">R$ 80</span>
+      </li>
+    </ul>
+    <p class="servicos__obs">Pagamento em dinheiro, pix ou cartão. Criança só com acompanhante.</p>
+  </section>
+
+  <section class="galeria">
+    <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=700&q=75" alt="Cadeira de barbeiro no salão" loading="lazy" />
+    <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=700&q=75" alt="Barbeiro finalizando corte de cliente" loading="lazy" />
+    <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=700&q=75" alt="Detalhe de barba feita na navalha" loading="lazy" />
+  </section>
+
+  <section class="horario" id="horario">
+    <div class="horario__caixa">
+      <h2 class="secao__titulo secao__titulo--claro">Funcionamento</h2>
+      <table class="horario__tabela">
+        <tbody>
+          <tr><td>Terça a sexta</td><td>09h — 20h</td></tr>
+          <tr><td>Sábado</td><td>08h — 18h</td></tr>
+          <tr><td>Domingo e segunda</td><td>Fechado</td></tr>
+        </tbody>
+      </table>
+      <p class="horario__nota">Sem hora marcada tem espera. Garanta seu horário pelo WhatsApp.</p>
+      <a href="#" class="btn btn--marcar" data-whatsapp-link>Chamar no WhatsApp</a>
+    </div>
+    <div class="horario__endereco" id="local">
+      <h3>Endereço</h3>
+      <p>Rua dos Andradas, 456 — Centro<br />Referência: em frente à praça</p>
+      <a href="#" data-email-link class="horario__email"></a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>Barbearia Malandro</p>
+  <p class="footer__aviso">Projeto demonstrativo — desenvolvido por Eduardo Grunitzky</p>
+</footer>
+
+<a href="#" class="whats-flutuante" data-whatsapp-link aria-label="Chamar no WhatsApp">
+  <svg viewBox="0 0 32 32" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M16.001 3C9.373 3 4 8.373 4 15c0 2.386.7 4.607 1.907 6.472L4 29l7.72-1.867A11.94 11.94 0 0 0 16.001 27C22.629 27 28 21.627 28 15S22.629 3 16.001 3zm0 21.818a9.77 9.77 0 0 1-4.98-1.362l-.357-.212-4.583 1.108 1.13-4.47-.233-.367A9.78 9.78 0 0 1 5.182 15c0-5.973 4.846-10.818 10.819-10.818S26.818 9.027 26.818 15 21.973 24.818 16.001 24.818zm5.62-8.147c-.307-.154-1.816-.897-2.098-1-.281-.103-.487-.154-.692.154-.205.307-.794 1-0.974 1.205-.179.205-.358.23-.665.077-.307-.154-1.296-.478-2.469-1.524-.913-.814-1.53-1.82-1.709-2.128-.179-.307-.019-.473.135-.626.139-.138.307-.359.46-.539.154-.179.205-.307.307-.512.103-.205.052-.384-.026-.538-.077-.154-.692-1.667-.948-2.283-.25-.6-.505-.519-.692-.529l-.59-.01c-.205 0-.538.077-.82.384-.281.307-1.075 1.05-1.075 2.564 0 1.513 1.1 2.975 1.253 3.18.154.205 2.166 3.307 5.248 4.637.733.316 1.305.505 1.75.647.735.234 1.404.2 1.933.121.59-.088 1.816-.743 2.072-1.462.256-.718.256-1.333.179-1.462-.077-.128-.281-.205-.588-.36z"/></svg>
+</a>
+
+<script src="script.js"></script>
+</body>
+</html>

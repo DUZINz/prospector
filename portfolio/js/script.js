@@ -3,9 +3,9 @@
  */
 const CONTATO = {
   // Número com DDI + DDD, só dígitos. Ex.: "5541999998888"
-  whatsapp: "55SEUNUMEROAQUI",
+  whatsapp: "5541987886113",
   whatsappMensagem: "Olá! Vi seu portfólio e quero um site para o meu negócio.",
-  email: "seuemail@dominio.com",
+  email: "eduardogrunitzky@gmail.com",
 };
 
 function montarLinkWhatsapp() {

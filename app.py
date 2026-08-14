@@ -18,7 +18,7 @@ import streamlit as st
 
 from prospector import cnpj as receita
 from prospector import storage
-from prospector.models import Lead, formatar_telefone
+from prospector.models import Lead, formatar_telefone, montar_link_whatsapp
 
 RAIZ = Path(__file__).resolve().parent
 
@@ -277,6 +277,10 @@ COLUNAS = [
 visao = df[COLUNAS].copy()
 visao["telefone"] = [
     formatar_telefone(e, b) for e, b in zip(df["telefone_e164"], df["telefone"])
+]
+# Cada lead recebe o link com a abordagem ja escrita no nome do negocio dele.
+visao["whatsapp"] = [
+    montar_link_whatsapp(nome, url) for nome, url in zip(df["nome"], df["whatsapp"])
 ]
 
 editado = st.data_editor(

@@ -7,6 +7,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import date
 from typing import Optional
+from urllib.parse import quote
 
 # DDDs validos no Brasil (evita tratar numero truncado como telefone bom).
 DDDS_VALIDOS = {
@@ -59,6 +60,37 @@ def normalizar_telefone(bruto):
     # Celular (9 digitos apos o DDD, comecando em 9) e o unico que vai pro WhatsApp.
     whats = f"https://wa.me/55{d}" if len(d) == 11 and d[2] == "9" else ""
     return e164, whats
+
+
+# Mensagem de abordagem. Enxuta de proposito: vai inteira dentro da URL do
+# wa.me, e link muito longo trava em alguns celulares.
+ABORDAGEM = (
+    "Olá! Meu nome é Eduardo Grunitzky.\n\n"
+    "Conheci o {negocio} e achei o trabalho de vocês muito interessante — mas "
+    "notei que ainda não tem um site à altura do que vocês oferecem.\n\n"
+    "Crio sites sob medida para negócios como o de vocês: mais confiança para "
+    "quem procura, mais clientes chegando e o trabalho de vocês bem apresentado.\n\n"
+    "Meu portfólio: https://portfolio-murex-alpha-23.vercel.app/\n"
+    "(os projetos de lá são modelos de demonstração que montei para mostrar o "
+    "estilo do trabalho — não são os sites finais entregues a clientes)\n\n"
+    "Se fizer sentido, seria um prazer conversar sobre o {negocio}."
+)
+
+
+def montar_link_whatsapp(nome_negocio: str, whatsapp_url: str) -> str:
+    """Acrescenta ao link puro do wa.me a mensagem ja preenchida com o nome do lead.
+
+    `whatsapp_url` e o link que `normalizar_telefone` devolve. Vazio entra,
+    vazio sai: quem nao tem WhatsApp valido continua sem link.
+    """
+    if not whatsapp_url:
+        return ""
+
+    negocio = (nome_negocio or "").strip() or "seu negócio"
+    # safe="" para nao deixar passar "/" e "&" do nome do negocio, que quebrariam
+    # o parametro. A quebra de linha vira %0A, que o WhatsApp entende.
+    texto = quote(ABORDAGEM.format(negocio=negocio), safe="")
+    return f"{whatsapp_url}?text={texto}"
 
 
 def formatar_telefone(e164, bruto=""):

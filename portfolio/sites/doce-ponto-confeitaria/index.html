@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Doce Ponto Confeitaria — Bolos e Doces Artesanais</title>
+<meta name="description" content="Doce Ponto Confeitaria. Bolos, tortas e doces artesanais feitos por encomenda. Peça pelo WhatsApp." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="#" class="header__logo">Doce Ponto</a>
+    <nav class="header__nav" id="nav">
+      <a href="#cardapio">Cardápio</a>
+      <a href="#sobre">Nossa história</a>
+      <a href="#local">Onde estamos</a>
+    </nav>
+    <a href="#" class="btn btn--pedir" data-whatsapp-link>Fazer encomenda</a>
+    <button class="header__burger" id="burger" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="hero__texto">
+      <p class="hero__tag">Feito em pequenas quantidades, todos os dias</p>
+      <h1 class="hero__titulo">Doce de <span>casa</span>,<br />no ponto certo.</h1>
+      <p class="hero__sub">
+        Bolos, tortas e docinhos artesanais, sob encomenda, para o dia a dia
+        ou pra aquela data que merece um doce à altura.
+      </p>
+      <a href="#" class="btn btn--pedir btn--grande" data-whatsapp-link>Pedir pelo WhatsApp</a>
+    </div>
+    <div class="hero__imagem">
+      <img src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80" alt="Bolo artesanal decorado com frutas vermelhas" loading="eager" />
+    </div>
+  </section>
+
+  <section class="cardapio" id="cardapio">
+    <p class="secao__tag">Cardápio</p>
+    <h2 class="secao__titulo">O que sai do forno</h2>
+
+    <div class="cardapio__grid">
+      <article class="produto">
+        <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=75" alt="Bolo de cenoura com cobertura de chocolate" loading="lazy" />
+        <div class="produto__info">
+          <h3>Bolo de Cenoura com Cobertura de Chocolate</h3>
+          <p>Massa fofinha, cobertura generosa. O clássico que nunca falha.</p>
+          <span class="produto__preco">R$ 55 <small>(médio, serve 10)</small></span>
+        </div>
+      </article>
+
+      <article class="produto">
+        <img src="https://images.unsplash.com/photo-1587668178277-295251f900ce?auto=format&fit=crop&w=500&q=75" alt="Torta de limão com merengue" loading="lazy" />
+        <div class="produto__info">
+          <h3>Torta de Limão Siciliano</h3>
+          <p>Base amanteigada, creme azedinho na medida, merengue maçaricado.</p>
+          <span class="produto__preco">R$ 68 <small>(serve 8)</small></span>
+        </div>
+      </article>
+
+      <article class="produto">
+        <img src="https://images.unsplash.com/photo-1587736799394-b2f7423b3b7e?auto=format&fit=crop&w=500&q=75" alt="Caixa de brigadeiros gourmet" loading="lazy" />
+        <div class="produto__info">
+          <h3>Brigadeiros Gourmet (cento)</h3>
+          <p>Tradicional, ninho, pistache ou café. Pode misturar os sabores.</p>
+          <span class="produto__preco">R$ 90 <small>(100 unidades)</small></span>
+        </div>
+      </article>
+
+      <article class="produto">
+        <img src="https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=500&q=75" alt="Red velvet decorado" loading="lazy" />
+        <div class="produto__info">
+          <h3>Red Velvet com Cream Cheese</h3>
+          <p>O queridinho de aniversário. Fica lindo na mesa e some rápido.</p>
+          <span class="produto__preco">R$ 85 <small>(grande, serve 16)</small></span>
+        </div>
+      </article>
+
+      <article class="produto">
+        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=75" alt="Cookies artesanais recheados" loading="lazy" />
+        <div class="produto__info">
+          <h3>Cookies Recheados (dúzia)</h3>
+          <p>Casquinha crocante, miolo mole. Chocolate meio amargo ou doce de leite.</p>
+          <span class="produto__preco">R$ 38</span>
+        </div>
+      </article>
+
+      <article class="produto">
+        <img src="https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=500&q=75" alt="Bolo de chocolate com frutas vermelhas" loading="lazy" />
+        <div class="produto__info">
+          <h3>Bolo de Chocolate com Frutas Vermelhas</h3>
+          <p>Massa úmida de chocolate 70%, recheio de frutas da estação.</p>
+          <span class="produto__preco">R$ 75 <small>(médio, serve 12)</small></span>
+        </div>
+      </article>
+    </div>
+
+    <p class="cardapio__obs">Encomendas com no mínimo 48h de antecedência. Datas comemorativas, consulte prazo.</p>
+  </section>
+
+  <section class="sobre" id="sobre">
+    <div class="sobre__imagem">
+      <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80" alt="Confeiteira decorando um bolo na cozinha" loading="lazy" />
+    </div>
+    <div class="sobre__texto">
+      <p class="secao__tag">Nossa história</p>
+      <h2 class="secao__titulo">Começou na cozinha de casa</h2>
+      <p>
+        A Doce Ponto nasceu em 2016, quando a Marina começou a vender bolos
+        para os vizinhos do prédio para fechar as contas do mês. O boca a boca
+        cresceu, e o que era hobby virou confeitaria de verdade — mas o jeito
+        de fazer continua o mesmo: pouca quantidade, ingrediente bom, sem
+        pressa.
+      </p>
+      <p>
+        Hoje a produção é pequena de propósito. Cada encomenda é feita na
+        data marcada, não sai de freezer nem fica pronta de véspera esperando
+        cliente.
+      </p>
+    </div>
+  </section>
+
+  <section class="local" id="local">
+    <div class="local__caixa">
+      <p class="secao__tag">Onde estamos</p>
+      <h2 class="secao__titulo">Retirada e entrega</h2>
+      <p class="local__endereco">Rua das Palmeiras, 88 — Vila Nova<br />Retirada mediante combinação de horário</p>
+      <div class="local__horario">
+        <div><strong>Terça a sábado</strong><span>10h às 19h</span></div>
+        <div><strong>Domingo e segunda</strong><span>Fechado (produção)</span></div>
+      </div>
+      <a href="#" class="btn btn--pedir btn--grande" data-whatsapp-link>Fazer pedido pelo WhatsApp</a>
+      <p class="local__email">ou escreva para <a href="#" data-email-link></a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>Doce Ponto Confeitaria</p>
+  <p class="footer__aviso">Projeto demonstrativo — desenvolvido por Eduardo Grunitzky</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
