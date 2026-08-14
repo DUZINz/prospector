@@ -1,0 +1,3 @@
+criar portfólio
+criar site com base nos dados do cliente
+mandar mensagem resolvendo uma dor do cliente e mostrando o site base, esqueleto

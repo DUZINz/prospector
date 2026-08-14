@@ -1,165 +1,109 @@
-"""Persistencia em SQLite: leads acumulam entre buscas, sem duplicar."""
+"""Leads em memoria: vivem em st.session_state, somem ao fechar a aba ou dar F5.
+
+Cada lead e um dict indexado por place_key. Sem arquivo, sem SQLite — o
+Excel/CSV exportado pela tela e o unico jeito de nao perder o trabalho.
+"""
 
 from __future__ import annotations
 
-import sqlite3
 from datetime import date
-from pathlib import Path
 from typing import Iterable
 
-from .models import Lead, normalizar_telefone
+from .models import Lead
 
-BANCO = Path(__file__).resolve().parent.parent / "leads.db"
-
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS leads (
-    place_key     TEXT PRIMARY KEY,
-    nome          TEXT NOT NULL,
-    categoria     TEXT,
-    endereco      TEXT,
-    telefone      TEXT,
-    telefone_e164 TEXT,
-    whatsapp      TEXT,
-    site          TEXT,
-    tem_site      INTEGER DEFAULT 0,
-    nota          REAL,
-    avaliacoes    INTEGER,
-    maps_url      TEXT,
-    termo         TEXT,
-    regiao        TEXT,
-    status        TEXT DEFAULT 'novo',
-    observacoes   TEXT DEFAULT '',
-    primeira_vez  TEXT,
-    ultima_vez    TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
-CREATE INDEX IF NOT EXISTS idx_leads_regiao ON leads(regiao);
-"""
+# Campos da Receita que todo lead carrega, mesmo antes de ser consultado.
+CAMPOS_RECEITA = {
+    "cnpj": "", "razao_social": "", "email": "", "porte": "",
+    "mei": None, "simples": None, "cnae": "", "situacao": "", "abertura": "",
+    "cnpj_confianca": 0.0, "cnpj_fonte": "", "cnpj_consultado": "",
+}
 
 
-def conectar(caminho: Path | str = BANCO) -> sqlite3.Connection:
-    # check_same_thread=False: o Streamlit reusa a conexao (@st.cache_resource)
-    # entre threads diferentes de script run. O acesso e serializado pelo proprio
-    # Streamlit, que roda um script por vez por sessao.
-    con = sqlite3.connect(str(caminho), check_same_thread=False)
-    con.row_factory = sqlite3.Row
-    con.executescript(SCHEMA)
-    reparar_telefones(con)
-    return con
-
-
-def reparar_telefones(con: sqlite3.Connection) -> int:
-    """Recalcula e164/whatsapp a partir do telefone bruto ja salvo.
-
-    Existe porque a normalizacao mudou depois que leads ja tinham sido gravados
-    (numeros com o 0 de prefixo nacional perdiam o WhatsApp). Roda na abertura,
-    e so escreve nas linhas em que o resultado realmente muda.
-    """
-    linhas = con.execute(
-        "SELECT place_key, telefone, telefone_e164, whatsapp FROM leads"
-    ).fetchall()
-
-    corrigidos = 0
-    for r in linhas:
-        e164, whats = normalizar_telefone(r["telefone"])
-        if e164 == (r["telefone_e164"] or "") and whats == (r["whatsapp"] or ""):
-            continue
-        con.execute(
-            "UPDATE leads SET telefone_e164=?, whatsapp=? WHERE place_key=?",
-            (e164, whats, r["place_key"]),
-        )
-        corrigidos += 1
-
-    if corrigidos:
-        con.commit()
-    return corrigidos
-
-
-def salvar(con: sqlite3.Connection, leads: Iterable[Lead]) -> tuple[int, int]:
+def salvar(leads_db: dict, leads: Iterable[Lead]) -> tuple[int, int]:
     """Insere novos leads; nos ja conhecidos so atualiza os dados coletados.
 
-    `status` e `observacoes` sao preservados — sao seus, nao do scraper.
-    Retorna (novos, atualizados).
+    `status`, `observacoes`, `primeira_vez` e os campos da Receita sao
+    preservados — sao seus, nao do scraper. Retorna (novos, atualizados).
     """
     hoje = date.today().isoformat()
     novos = atualizados = 0
 
     for lead in leads:
-        existe = con.execute(
-            "SELECT 1 FROM leads WHERE place_key = ?", (lead.place_key,)
-        ).fetchone()
-
-        if existe:
-            con.execute(
-                """UPDATE leads SET
-                       nome=?, categoria=?, endereco=?, telefone=?, telefone_e164=?,
-                       whatsapp=?, site=?, tem_site=?, nota=?, avaliacoes=?,
-                       maps_url=?, ultima_vez=?
-                   WHERE place_key=?""",
-                (
-                    lead.nome, lead.categoria, lead.endereco, lead.telefone,
-                    lead.telefone_e164, lead.whatsapp, lead.site, int(lead.tem_site),
-                    lead.nota, lead.avaliacoes, lead.maps_url, hoje, lead.place_key,
-                ),
-            )
+        dados = lead.to_dict()
+        existente = leads_db.get(lead.place_key)
+        if existente:
+            dados["status"] = existente["status"]
+            dados["observacoes"] = existente["observacoes"]
+            dados["primeira_vez"] = existente["primeira_vez"]
+            for campo, padrao in CAMPOS_RECEITA.items():
+                dados[campo] = existente.get(campo, padrao)
             atualizados += 1
         else:
-            con.execute(
-                """INSERT INTO leads (
-                       place_key, nome, categoria, endereco, telefone, telefone_e164,
-                       whatsapp, site, tem_site, nota, avaliacoes, maps_url,
-                       termo, regiao, status, observacoes, primeira_vez, ultima_vez)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (
-                    lead.place_key, lead.nome, lead.categoria, lead.endereco,
-                    lead.telefone, lead.telefone_e164, lead.whatsapp, lead.site,
-                    int(lead.tem_site), lead.nota, lead.avaliacoes, lead.maps_url,
-                    lead.termo, lead.regiao, lead.status, lead.observacoes, hoje, hoje,
-                ),
-            )
+            dados.update(CAMPOS_RECEITA)
             novos += 1
+        dados["ultima_vez"] = hoje
+        leads_db[lead.place_key] = dados
 
-    con.commit()
     return novos, atualizados
 
 
-def listar(con: sqlite3.Connection, **filtros) -> list[dict]:
-    """Filtros aceitos: status, regiao, termo, apenas_sem_site, com_whatsapp."""
-    sql = "SELECT * FROM leads WHERE 1=1"
-    params: list = []
+def listar(leads_db: dict, **filtros) -> list[dict]:
+    """Filtros: status, regiao, termo, apenas_sem_site, com_whatsapp, com_email, apenas_mei."""
+    registros = list(leads_db.values())
 
     if filtros.get("status"):
-        marcadores = ",".join("?" * len(filtros["status"]))
-        sql += f" AND status IN ({marcadores})"
-        params += list(filtros["status"])
+        alvo = set(filtros["status"])
+        registros = [r for r in registros if r["status"] in alvo]
     if filtros.get("regiao"):
-        sql += " AND regiao = ?"
-        params.append(filtros["regiao"])
+        registros = [r for r in registros if r["regiao"] == filtros["regiao"]]
     if filtros.get("termo"):
-        sql += " AND termo = ?"
-        params.append(filtros["termo"])
+        registros = [r for r in registros if r["termo"] == filtros["termo"]]
     if filtros.get("apenas_sem_site"):
-        sql += " AND tem_site = 0"
+        registros = [r for r in registros if not r["tem_site"]]
     if filtros.get("com_whatsapp"):
-        sql += " AND whatsapp <> ''"
+        registros = [r for r in registros if r["whatsapp"]]
+    if filtros.get("com_email"):
+        registros = [r for r in registros if r["email"]]
+    if filtros.get("apenas_mei"):
+        registros = [r for r in registros if r["mei"] is True]
 
-    # `avaliacoes IS NULL` primeiro em vez de NULLS LAST: funciona em SQLite antigo.
-    sql += " ORDER BY avaliacoes IS NULL, avaliacoes DESC, nome"
-    return [dict(r) for r in con.execute(sql, params).fetchall()]
-
-
-def atualizar_status(con: sqlite3.Connection, place_key: str, status: str, obs: str = "") -> None:
-    con.execute(
-        "UPDATE leads SET status=?, observacoes=? WHERE place_key=?",
-        (status, obs, place_key),
-    )
-    con.commit()
+    registros.sort(key=lambda r: (r["avaliacoes"] is None, -(r["avaliacoes"] or 0), r["nome"]))
+    return registros
 
 
-def valores_distintos(con: sqlite3.Connection, coluna: str) -> list[str]:
+def atualizar_status(leads_db: dict, place_key: str, status: str, obs: str = "") -> None:
+    if place_key in leads_db:
+        leads_db[place_key]["status"] = status
+        leads_db[place_key]["observacoes"] = obs
+
+
+def valores_distintos(leads_db: dict, coluna: str) -> list[str]:
     if coluna not in {"regiao", "termo", "status", "categoria"}:
         raise ValueError(f"coluna nao permitida: {coluna}")
-    linhas = con.execute(
-        f"SELECT DISTINCT {coluna} FROM leads WHERE {coluna} <> '' ORDER BY 1"
-    ).fetchall()
-    return [r[0] for r in linhas]
+    return sorted({r[coluna] for r in leads_db.values() if r.get(coluna)})
+
+
+def pendentes_de_receita(leads_db: dict, limite: int = 50, **filtros) -> list[dict]:
+    """Leads que ainda nao foram consultados na Receita, respeitando os filtros da tela."""
+    todos = listar(leads_db, **filtros)
+    return [r for r in todos if not r["cnpj_consultado"]][:limite]
+
+
+def salvar_receita(leads_db: dict, place_key: str, dados, quando: str = "") -> None:
+    """Grava o resultado do enriquecimento. `dados` None marca a tentativa falha."""
+    registro = leads_db.get(place_key)
+    if registro is None:
+        return
+
+    quando = quando or date.today().isoformat()
+    if dados is None:
+        registro["cnpj_consultado"] = quando
+        return
+
+    registro.update(
+        cnpj=dados.cnpj, razao_social=dados.razao_social, email=dados.email,
+        porte=dados.porte, mei=dados.mei, simples=dados.simples, cnae=dados.cnae,
+        situacao=dados.situacao, abertura=dados.abertura,
+        cnpj_confianca=dados.confianca, cnpj_fonte=dados.fonte,
+        cnpj_consultado=quando,
+    )

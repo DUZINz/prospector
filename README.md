@@ -56,16 +56,45 @@ Um negócio é considerado **sem site** quando o campo de site no Maps está vaz
 
 Ajuste essa lista conforme o seu critério de venda.
 
-## Sobre e-mail
+## E-mail e MEI (enriquecimento pela Receita)
 
-**O Google Maps não tem e-mail de empresa.** Não é limitação do scraper: o campo
-não existe na base do Google, nem na API oficial paga. As vias reais são:
+**O Google Maps não tem e-mail de empresa** — o campo não existe na base do
+Google, nem na API oficial paga. Quem tem é a Receita Federal, cuja base de CNPJ
+é pública. O módulo `prospector/cnpj.py` faz a ponte, em duas etapas:
 
-1. **WhatsApp** — já vem pronto, é o canal que converte melhor no Brasil
-2. **Bio do Instagram** — quando a coluna *Link social* está preenchida, o e-mail
-   costuma estar lá
-3. Enriquecimento por CNPJ (ReceitaWS, BrasilAPI) — o e-mail cadastrado na Receita,
-   que às vezes é o do contador, não o da empresa
+```
+nome + município  --(busca)-->  CNPJ  --(consulta)-->  e-mail, porte, MEI
+```
+
+Na barra lateral, **Enriquecer pela Receita → Buscar e-mail e CNPJ**. Ele consulta
+só quem ainda não foi consultado, respeitando os filtros da tela, e grava cada
+lead assim que responde — fechar a aba no meio não perde o que já foi feito.
+
+Antes do primeiro uso, confirme que os provedores respondem da sua rede:
+
+```powershell
+python -m prospector.cnpj --diagnostico
+```
+
+**A etapa frágil é achar o CNPJ pelo nome.** Nome fantasia do Maps quase nunca é
+igual à razão social da Receita. Cada candidato recebe uma nota por sobreposição
+de palavras próprias (as genéricas do ramo — "advocacia", "pet shop" — não contam,
+senão dois negócios diferentes casariam entre si), e abaixo de
+`LIMIAR_SIMILARIDADE` o campo fica em branco. **Preferimos não preencher a colar
+o CNPJ de outra empresa no seu lead.**
+
+Quando ele não achar, a coluna **CNPJ** da tabela é editável: cole o número, salve
+e clique em enriquecer de novo — com o CNPJ em mãos o acerto é garantido.
+
+Casos que a busca automática não resolve sozinha: MEI registrado no nome civil
+("Barbearia do Zé" é `JOSÉ CARLOS SILVA`) e nomes feitos só de termos do ramo
+("Escritório de Advocacia"). Não há sinal suficiente para casar com segurança.
+
+Ritmo: o `publica.cnpj.ws` limita a 3 consultas/minuto, então lotes grandes
+demoram. O `minhareceita.org` é tentado primeiro justamente por ser mais rápido.
+
+Terceira via, ainda não implementada: **e-mail na bio do Instagram**, quando a
+coluna *Link social* está preenchida.
 
 ## Limites que você vai encontrar
 
@@ -88,6 +117,7 @@ app.py                      interface Streamlit
 prospector/
   scraper.py                Playwright + CLI (emite NDJSON)
   selectors.py              seletores do Maps — conserte aqui quando quebrar
+  cnpj.py                   Receita: e-mail, porte, MEI (+ --diagnostico)
   models.py                 Lead, telefone BR, chave de deduplicação
   storage.py                SQLite
 leads.db                    criado no primeiro uso

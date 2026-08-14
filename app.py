@@ -16,6 +16,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from prospector import cnpj as receita
 from prospector import storage
 from prospector.models import Lead, formatar_telefone
 
@@ -24,12 +25,9 @@ RAIZ = Path(__file__).resolve().parent
 st.set_page_config(page_title="Prospector — leads sem site", page_icon="🔎", layout="wide")
 
 
-@st.cache_resource
-def _con():
-    return storage.conectar()
-
-
-con = _con()
+if "leads" not in st.session_state:
+    st.session_state.leads = {}
+leads_db = st.session_state.leads
 
 
 def rodar_busca(termo: str, regiao: str, maximo: int, apenas_sem_site: bool, visivel: bool):
@@ -136,7 +134,7 @@ if st.sidebar.button("Buscar", type="primary", use_container_width=True):
             for termo in termos:
                 st.write(f"### {termo} — {regiao}")
                 leads, erros = rodar_busca(termo, regiao, maximo, apenas_sem_site, visivel)
-                novos, atualizados = storage.salvar(con, leads)
+                novos, atualizados = storage.salvar(leads_db, leads)
                 total_novos += novos
                 total_atualizados += atualizados
                 todos_erros += erros
@@ -149,15 +147,73 @@ if st.sidebar.button("Buscar", type="primary", use_container_width=True):
                     st.text(e)
 
 
+st.sidebar.divider()
+st.sidebar.header("Enriquecer pela Receita")
+st.sidebar.caption(
+    "Busca o CNPJ pelo nome e traz **e-mail** e **porte (MEI)** — os dois campos "
+    "que o Google Maps nao tem."
+)
+lote_receita = st.sidebar.slider("Leads por vez", 10, 200, 50, step=10)
+enriquecer_agora = st.sidebar.button(
+    "Buscar e-mail e CNPJ", use_container_width=True,
+    help="Consulta so os leads ainda nao consultados, respeitando os filtros da tela.",
+)
+
+
+def rodar_enriquecimento(filtros: dict, limite: int) -> None:
+    """Consulta a Receita lead a lead, gravando cada resultado na hora.
+
+    Gravar a cada lead (e nao no fim) e proposital: a consulta e lenta por causa
+    do limite de requisicoes dos provedores, e fechar a aba no meio nao pode
+    custar o trabalho ja feito.
+    """
+    pendentes = storage.pendentes_de_receita(leads_db, limite=limite, **filtros)
+    if not pendentes:
+        st.info("Nenhum lead pendente com esses filtros — todos ja foram consultados.")
+        return
+
+    barra = st.progress(0.0, text=f"0 de {len(pendentes)}...")
+    achados = com_email = meis = 0
+
+    for i, r in enumerate(pendentes, start=1):
+        try:
+            dados = receita.enriquecer(
+                nome=r["nome"], endereco=r.get("endereco") or "",
+                regiao=r.get("regiao") or "", cnpj=r.get("cnpj") or "",
+            )
+        except Exception as exc:  # noqa: BLE001 — um lead ruim nao derruba o lote
+            st.warning(f"{r['nome']}: {type(exc).__name__}")
+            dados = None
+
+        storage.salvar_receita(leads_db, r["place_key"], dados)
+        if dados:
+            achados += 1
+            com_email += 1 if dados.email else 0
+            meis += 1 if dados.mei else 0
+        barra.progress(i / len(pendentes), text=f"{i} de {len(pendentes)}...")
+
+    barra.empty()
+    st.success(
+        f"{achados} de {len(pendentes)} identificados na Receita — "
+        f"{com_email} com e-mail, {meis} MEI."
+    )
+    if achados < len(pendentes):
+        st.caption(
+            f"{len(pendentes) - achados} nao foram identificados. Quase sempre e nome "
+            "fantasia muito diferente da razao social. Cole o CNPJ na coluna *CNPJ* "
+            "e clique de novo — com o numero em maos ele acerta sempre."
+        )
+
+
 # ------------------------------ painel principal ------------------------------
 
 st.title("🔎 Leads sem site proprio")
 
 f1, f2, f3, f4 = st.columns(4)
 with f1:
-    filtro_regiao = st.selectbox("Regiao", ["(todas)"] + storage.valores_distintos(con, "regiao"))
+    filtro_regiao = st.selectbox("Regiao", ["(todas)"] + storage.valores_distintos(leads_db, "regiao"))
 with f2:
-    filtro_termo = st.selectbox("Categoria", ["(todas)"] + storage.valores_distintos(con, "termo"))
+    filtro_termo = st.selectbox("Categoria", ["(todas)"] + storage.valores_distintos(leads_db, "termo"))
 with f3:
     filtro_status = st.multiselect(
         "Status", ["novo", "contatado", "negociando", "fechado", "descartado"],
@@ -165,15 +221,40 @@ with f3:
     )
 with f4:
     so_whatsapp = st.checkbox("So com WhatsApp", value=False)
+    so_email = st.checkbox("So com e-mail", value=False)
+    so_mei = st.checkbox("So MEI", value=False, help="Exige enriquecimento pela Receita.")
 
 registros = storage.listar(
-    con,
+    leads_db,
     regiao=None if filtro_regiao == "(todas)" else filtro_regiao,
     termo=None if filtro_termo == "(todas)" else filtro_termo,
     status=filtro_status or None,
     apenas_sem_site=True,
     com_whatsapp=so_whatsapp,
+    com_email=so_email,
+    apenas_mei=so_mei,
 )
+
+if enriquecer_agora:
+    rodar_enriquecimento(
+        {
+            "regiao": None if filtro_regiao == "(todas)" else filtro_regiao,
+            "termo": None if filtro_termo == "(todas)" else filtro_termo,
+            "status": filtro_status or None,
+            "apenas_sem_site": True,
+        },
+        lote_receita,
+    )
+    registros = storage.listar(
+        leads_db,
+        regiao=None if filtro_regiao == "(todas)" else filtro_regiao,
+        termo=None if filtro_termo == "(todas)" else filtro_termo,
+        status=filtro_status or None,
+        apenas_sem_site=True,
+        com_whatsapp=so_whatsapp,
+        com_email=so_email,
+        apenas_mei=so_mei,
+    )
 
 if not registros:
     st.info("Nenhum lead com esses filtros. Faca uma busca na barra lateral.")
@@ -181,14 +262,17 @@ if not registros:
 
 df = pd.DataFrame(registros)
 
-m1, m2, m3 = st.columns(3)
+m1, m2, m3, m4, m5 = st.columns(5)
 m1.metric("Leads", len(df))
-m2.metric("Com telefone", int((df["telefone_e164"] != "").sum()))
-m3.metric("Com WhatsApp", int((df["whatsapp"] != "").sum()))
+m2.metric("Com WhatsApp", int((df["whatsapp"] != "").sum()))
+m3.metric("Com e-mail", int((df.get("email", pd.Series(dtype=str)) != "").sum()))
+m4.metric("MEI", int((df.get("mei", pd.Series(dtype=float)) == 1).sum()))
+m5.metric("Sem consultar", int((df.get("cnpj_consultado", pd.Series(dtype=str)) == "").sum()))
 
 COLUNAS = [
-    "nome", "categoria", "telefone", "whatsapp", "site", "endereco",
-    "nota", "avaliacoes", "status", "observacoes", "maps_url", "place_key",
+    "nome", "categoria", "telefone", "whatsapp", "email", "porte", "mei",
+    "site", "endereco", "cnpj", "razao_social", "nota", "avaliacoes",
+    "status", "observacoes", "maps_url", "place_key",
 ]
 visao = df[COLUNAS].copy()
 visao["telefone"] = [
@@ -200,9 +284,16 @@ editado = st.data_editor(
     use_container_width=True,
     hide_index=True,
     height=520,
-    disabled=[c for c in COLUNAS if c not in ("status", "observacoes")],
+    # `cnpj` editavel de proposito: quando a busca automatica nao acha, voce cola
+    # o numero na mao e o proximo enriquecimento completa o resto.
+    disabled=[c for c in COLUNAS if c not in ("status", "observacoes", "cnpj")],
     column_config={
         "nome": st.column_config.TextColumn("Nome", width="medium"),
+        "email": st.column_config.TextColumn("E-mail", width="medium"),
+        "porte": st.column_config.TextColumn("Porte", width="small"),
+        "mei": st.column_config.CheckboxColumn("MEI", width="small"),
+        "cnpj": st.column_config.TextColumn("CNPJ", width="small", help="Cole aqui se o automatico nao achar."),
+        "razao_social": st.column_config.TextColumn("Razao social", width="medium"),
         "telefone": st.column_config.TextColumn("Telefone", width="small"),
         "whatsapp": st.column_config.LinkColumn("WhatsApp", display_text="abrir"),
         # Preenchido = tem Instagram/link, mas nao site proprio.
@@ -225,11 +316,19 @@ with c1:
     if st.button("Salvar alteracoes", type="primary", use_container_width=True):
         alterados = 0
         for antes, depois in zip(visao.itertuples(), editado.itertuples()):
-            if antes.status != depois.status or antes.observacoes != depois.observacoes:
+            mudou = (
+                antes.status != depois.status
+                or antes.observacoes != depois.observacoes
+            )
+            if mudou:
                 storage.atualizar_status(
-                    con, depois.place_key, depois.status, depois.observacoes or ""
+                    leads_db, depois.place_key, depois.status, depois.observacoes or ""
                 )
-                alterados += 1
+            if (antes.cnpj or "") != (depois.cnpj or ""):
+                leads_db[depois.place_key]["cnpj"] = receita.so_digitos(depois.cnpj)
+                leads_db[depois.place_key]["cnpj_consultado"] = ""
+                mudou = True
+            alterados += 1 if mudou else 0
         st.success(f"{alterados} lead(s) atualizados.") if alterados else st.info("Nada mudou.")
         st.rerun()
 

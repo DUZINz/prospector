@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eduardo Grunitzky — Sites sob medida para o seu negócio</title>
+  <meta name="description" content="Sites sob medida para empresários, MEIs e comerciantes. Nada de template pronto: cada site é pensado para o negócio específico do cliente." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <header class="header" id="topo">
+    <div class="header__inner">
+      <a href="#topo" class="header__nome">Eduardo Grunitzky</a>
+      <a href="#" class="btn btn--small btn--accent" data-whatsapp-link>Chamar no WhatsApp</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="hero__inner">
+        <p class="hero__tag">Desenvolvedor de sites &mdash; sob medida</p>
+        <h1 class="hero__titulo">
+          Seu negócio não é genérico.<br />
+          Seu site também <em>não devia ser</em>.
+        </h1>
+        <p class="hero__sub">
+          Crio sites pensados para o seu negócio específico — a padaria, o escritório,
+          a barbearia — e não uma cópia de template que parece igual à concorrência.
+          Rápido, no seu celular, direto ao ponto.
+        </p>
+        <div class="hero__cta">
+          <a href="#" class="btn btn--accent btn--grande" data-whatsapp-link>
+            Falar no WhatsApp agora
+          </a>
+          <a href="#portfolio" class="btn btn--fantasma">Ver projetos ↓</a>
+        </div>
+      </div>
+      <div class="hero__marca" aria-hidden="true">EG</div>
+    </section>
+
+    <!-- ============ CREDIBILIDADE ============ -->
+    <section class="credibilidade">
+      <div class="credibilidade__coluna">
+        <h2 class="secao__titulo secao__titulo--media">
+          Bonito é o mínimo.<br />O site precisa <em>trabalhar</em> por você.
+        </h2>
+      </div>
+      <div class="credibilidade__lista">
+        <div class="credibilidade__item" data-reveal>
+          <strong>Mobile-first de verdade</strong>
+          <p>A maioria dos seus clientes vai abrir no celular. O site é desenhado
+             para funcionar bem lá primeiro — não adaptado depois às pressas.</p>
+        </div>
+        <div class="credibilidade__item" data-reveal>
+          <strong>Carregamento rápido</strong>
+          <p>Sem excesso de plugin ou script pesado. Site lento perde cliente
+             antes mesmo de carregar a primeira imagem.</p>
+        </div>
+        <div class="credibilidade__item" data-reveal>
+          <strong>Preparado para o Google</strong>
+          <p>SEO básico bem feito desde o início: título, descrição e estrutura
+             certos para o seu negócio aparecer em quem te procura.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ COMO FUNCIONA ============ -->
+    <section class="processo" id="processo">
+      <h2 class="secao__titulo">Como funciona</h2>
+      <p class="secao__intro">Quatro passos. Nenhum deles é "escolher um tema pronto".</p>
+
+      <ol class="processo__lista">
+        <li class="processo__item" data-reveal>
+          <span class="processo__numero">01</span>
+          <div>
+            <strong>Conversa inicial</strong>
+            <p>Entendo seu negócio, quem é seu cliente e o que o site precisa
+               vender ou resolver — antes de pensar em uma linha de design.</p>
+          </div>
+        </li>
+        <li class="processo__item" data-reveal>
+          <span class="processo__numero">02</span>
+          <div>
+            <strong>Proposta sob medida</strong>
+            <p>Layout, textos e funcionalidades pensados para o seu caso.
+               Nada de pacote fechado com seções que você não vai usar.</p>
+          </div>
+        </li>
+        <li class="processo__item" data-reveal>
+          <span class="processo__numero">03</span>
+          <div>
+            <strong>Desenvolvimento</strong>
+            <p>Construo o site e te mostro o progresso no caminho, com espaço
+               para ajuste — você não vê o resultado só no fim.</p>
+          </div>
+        </li>
+        <li class="processo__item" data-reveal>
+          <span class="processo__numero">04</span>
+          <div>
+            <strong>Entrega e suporte</strong>
+            <p>Site no ar, treinamento rápido para você mexer no que precisar,
+               e eu continuo por perto para ajustes depois da entrega.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============ PORTFÓLIO ============ -->
+    <section class="portfolio" id="portfolio">
+      <h2 class="secao__titulo">Projetos</h2>
+      <p class="secao__intro">
+        Cada site abaixo foi construído para o negócio de um cliente específico —
+        não editado a partir de um modelo genérico.
+      </p>
+
+      <div class="portfolio__grid" id="portfolio-grid">
+        <!-- Cards inseridos via JS a partir de data/projetos.js -->
+      </div>
+    </section>
+
+    <!-- ============ CONTATO ============ -->
+    <section class="contato" id="contato">
+      <h2 class="contato__titulo">
+        Vamos conversar sobre<br /><em>o seu</em> site?
+      </h2>
+      <p class="contato__sub">
+        Me chama no WhatsApp e conta um pouco do seu negócio.
+        Sem compromisso, sem enrolação.
+      </p>
+      <a href="#" class="btn btn--accent btn--grande" data-whatsapp-link>
+        Falar no WhatsApp
+      </a>
+      <p class="contato__alt">
+        ou envie um e-mail para
+        <a href="#" data-email-link class="contato__email"></a>
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>Eduardo Grunitzky — sites sob medida.</p>
+    <p class="footer__ano"></p>
+  </footer>
+
+  <script src="data/projetos.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
