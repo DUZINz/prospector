@@ -77,11 +77,34 @@ ABORDAGEM = (
 )
 
 
-def montar_link_whatsapp(nome_negocio: str, whatsapp_url: str) -> str:
+# 1o follow-up (~4 dias depois). Tom leve, nao repete a apresentacao e troca o
+# pedido "vamos conversar" por algo de atrito menor: so ver um exemplo.
+ABORDAGEM_FOLLOWUP1 = (
+    "Oi! Passando de novo por aqui — sei que a rotina é corrida.\n\n"
+    "Posso te mandar um exemplo pronto de como ficaria o site do {negocio}? "
+    "Sem compromisso nenhum, é só pra você ver a ideia. É rápido de eu montar."
+)
+
+# 2o e ultimo follow-up. Curto, com saida facil: encerrar sem constranger deixa
+# a porta aberta para o lead voltar depois.
+ABORDAGEM_FOLLOWUP2 = (
+    "Última mensagem por aqui, prometo 🙂\n\n"
+    "Se não for o momento certo pro {negocio}, sem problema algum — fico à "
+    "disposição quando fizer sentido. Se quiser dar uma olhada, o link continua "
+    "o mesmo: https://portfolio-murex-alpha-23.vercel.app/"
+)
+
+
+def montar_link_whatsapp(
+    nome_negocio: str, whatsapp_url: str, modelo: str = ABORDAGEM
+) -> str:
     """Acrescenta ao link puro do wa.me a mensagem ja preenchida com o nome do lead.
 
     `whatsapp_url` e o link que `normalizar_telefone` devolve. Vazio entra,
     vazio sai: quem nao tem WhatsApp valido continua sem link.
+
+    `modelo` escolhe qual mensagem vai no link — a abordagem inicial (padrao)
+    ou um dos follow-ups.
     """
     if not whatsapp_url:
         return ""
@@ -89,7 +112,7 @@ def montar_link_whatsapp(nome_negocio: str, whatsapp_url: str) -> str:
     negocio = (nome_negocio or "").strip() or "seu negócio"
     # safe="" para nao deixar passar "/" e "&" do nome do negocio, que quebrariam
     # o parametro. A quebra de linha vira %0A, que o WhatsApp entende.
-    texto = quote(ABORDAGEM.format(negocio=negocio), safe="")
+    texto = quote(modelo.format(negocio=negocio), safe="")
     return f"{whatsapp_url}?text={texto}"
 
 

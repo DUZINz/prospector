@@ -18,6 +18,15 @@ CAMPOS_RECEITA = {
     "cnpj_confianca": 0.0, "cnpj_fonte": "", "cnpj_consultado": "",
 }
 
+# Campos do funil de contato. Vivem de verdade em funil.db (que sobrevive entre
+# sessoes); aqui ficam so os valores neutros, para a tabela sempre ter a coluna
+# mesmo antes de o lead entrar no funil. O merge de funil.py sobrescreve.
+CAMPOS_FUNIL = {
+    "estagio_contato": 0,
+    "data_primeiro_contato": "",
+    "data_ultimo_contato": "",
+}
+
 
 def salvar(leads_db: dict, leads: Iterable[Lead]) -> tuple[int, int]:
     """Insere novos leads; nos ja conhecidos so atualiza os dados coletados.
@@ -35,11 +44,12 @@ def salvar(leads_db: dict, leads: Iterable[Lead]) -> tuple[int, int]:
             dados["status"] = existente["status"]
             dados["observacoes"] = existente["observacoes"]
             dados["primeira_vez"] = existente["primeira_vez"]
-            for campo, padrao in CAMPOS_RECEITA.items():
+            for campo, padrao in {**CAMPOS_RECEITA, **CAMPOS_FUNIL}.items():
                 dados[campo] = existente.get(campo, padrao)
             atualizados += 1
         else:
             dados.update(CAMPOS_RECEITA)
+            dados.update(CAMPOS_FUNIL)
             novos += 1
         dados["ultima_vez"] = hoje
         leads_db[lead.place_key] = dados

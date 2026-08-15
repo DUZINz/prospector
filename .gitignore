@@ -2,5 +2,9 @@
 __pycache__/
 *.pyc
 leads.db
+# Funil de contato: nome e telefone REAIS de quem ja foi abordado. Dado
+# sensivel — nunca versionar.
+funil.db
+prospector/funil.db
 *.xlsx
 *.csv

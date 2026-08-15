@@ -67,8 +67,9 @@ nome + município  --(busca)-->  CNPJ  --(consulta)-->  e-mail, porte, MEI
 ```
 
 Na barra lateral, **Enriquecer pela Receita → Buscar e-mail e CNPJ**. Ele consulta
-só quem ainda não foi consultado, respeitando os filtros da tela, e grava cada
-lead assim que responde — fechar a aba no meio não perde o que já foi feito.
+só quem ainda não foi consultado, respeitando os filtros da tela, e grava cada lead
+assim que responde — interromper no meio preserva o que já foi consultado, desde que
+a aba continue aberta (veja *Onde os leads ficam*).
 
 Antes do primeiro uso, confirme que os provedores respondem da sua rede:
 
@@ -118,18 +119,67 @@ prospector/
   scraper.py                Playwright + CLI (emite NDJSON)
   selectors.py              seletores do Maps — conserte aqui quando quebrar
   cnpj.py                   Receita: e-mail, porte, MEI (+ --diagnostico)
-  models.py                 Lead, telefone BR, chave de deduplicação
-  storage.py                SQLite
-leads.db                    criado no primeiro uso
+  models.py                 Lead, telefone BR, textos das mensagens
+  storage.py                leads em memória (st.session_state)
+  funil.py                  funil de contato em SQLite (persiste)
+  funil.db                  criado no 1º uso — NÃO versionar
 ```
 
-Os leads acumulam entre buscas, deduplicados pelo identificador do local. O
-`status` (novo/contatado/negociando/fechado/descartado) e as suas notas **nunca
-são sobrescritos** quando você refaz uma busca.
+## Onde os leads ficam
+
+São **dois níveis de dado**, de propósito:
+
+**1. Resultado da busca — só na sessão.** `storage.py` é um dicionário em
+`st.session_state`, indexado pela chave do local. Nome, telefone, endereço, nota:
+tudo isso **some ao fechar a aba, dar F5 ou reiniciar o Streamlit**. É o
+comportamento pretendido, não um bug — refazer a busca é barato.
+
+Enquanto a aba fica aberta, os leads acumulam entre buscas, deduplicados pelo
+identificador do local.
+
+**2. Funil de contato — persistido em `prospector/funil.db`.** Quem você já
+abordou, em que estágio está e quando foi a última mensagem **não pode sumir**,
+senão você manda a mesma primeira mensagem duas vezes para o mesmo negócio. Esse
+pedaço vive em SQLite (`funil.py`) e volta sozinho por cima da sessão quando você
+reabre o app e refaz a busca — junto com `status` e as suas notas.
+
+> ⚠️ `funil.db` guarda **nome e telefone reais** de quem foi abordado. Está no
+> `.gitignore` e não deve ser versionado nem compartilhado.
+
+Como o resultado da busca não persiste, **exportar continua sendo o jeito de não
+perder a coleta**: botões **Excel** e **CSV** no rodapé da tabela.
+
+## Follow-up de WhatsApp
+
+A sequência tem 3 mensagens e termina — sem bot, sem automação de envio, para não
+arriscar o número. O app decide **quem está pronto**; o envio continua sendo seu
+clique dentro do WhatsApp.
+
+```
+estágio 0  nunca contatado       →  abordagem inicial
+estágio 1  1ª mensagem enviada   →  espera DIAS_ATE_FOLLOWUP1 (4 dias)
+estágio 2  1º follow-up enviado  →  espera DIAS_ATE_FOLLOWUP2 (6 dias)
+estágio 3  2º follow-up enviado  →  encerrado, não insiste mais
+```
+
+Os prazos são constantes no topo de `prospector/funil.py`; os textos das três
+mensagens ficam em `prospector/models.py` (`ABORDAGEM`, `ABORDAGEM_FOLLOWUP1`,
+`ABORDAGEM_FOLLOWUP2`).
+
+Na tabela, a coluna **WhatsApp** só vira link quando há mensagem liberada — a
+coluna **Situação** ao lado diz o porquê (`aguardando (3d)`, `sequência
+concluída`). Depois de enviar, marque **"Enviei essa mensagem"** e clique em
+*Salvar alterações*: isso avança o estágio, carimba a data e agenda o próximo.
+
+O expander **📤 Fila de hoje** lista só quem está liberado agora, do mais atrasado
+ao mais recente, com um botão que abre todas as conversas em abas. Essa fila
+**ignora os filtros da tabela** de propósito: assim que um lead recebe a primeira
+mensagem ele vira `contatado` e sairia do filtro padrão (`novo`) — a fila ficaria
+vazia justamente no dia de mandar o follow-up.
 
 ## Trocar o scraping pela API oficial
 
 Se o scraping começar a dar trabalho: a Places API (New) devolve `websiteUri` e
 `nationalPhoneNumber` direto, com 10k chamadas grátis por mês. É só escrever um
 `prospector/places_api.py` que exponha a mesma função `buscar()` de `scraper.py`
-— ela devolve `Lead`, e nem o app nem o banco precisam mudar.
+— ela devolve `Lead`, e nem o app nem o armazenamento precisam mudar.
