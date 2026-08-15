@@ -18,6 +18,16 @@
 
   --largura-max: 72rem;
   --raio: 2px;
+
+  /* Respiro minimo nas bordas do celular. */
+  --gutter: 1.25rem;
+  /* Faixa lateral que centraliza o conteudo em ate --largura-max SEM encolher a
+     secao: o elemento continua com 100% da largura da tela (fundo e bordas de
+     ponta a ponta) e e o padding que cresce em monitor grande. Substitui o
+     antigo "max-width + margin: 0 auto", que deixava faixa morta nas laterais. */
+  --respiro-lateral: max(var(--gutter), calc((100% - var(--largura-max)) / 2));
+  /* Altura do header sticky — descontada do hero para a 1a dobra fechar exata. */
+  --h-header: 4.2rem;
 }
 
 * {
@@ -139,9 +149,17 @@ em {
 
 .hero {
   position: relative;
-  max-width: var(--largura-max);
-  margin: 0 auto;
-  padding: clamp(3rem, 10vw, 7rem) 1.25rem clamp(3.5rem, 8vw, 6rem);
+  width: 100%;
+  /* Fecha a primeira dobra: header + hero = uma tela cheia. 100dvh (e nao
+     100vh) porque no celular a barra de endereco entra na conta do vh e o
+     conteudo fica escondido atras dela. A linha vh e fallback de navegador
+     antigo, que ignora a dvh logo abaixo. */
+  min-height: calc(100vh - var(--h-header));
+  min-height: calc(100dvh - var(--h-header));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(3rem, 8vw, 5rem) var(--respiro-lateral);
   overflow: hidden;
 }
 
@@ -231,9 +249,8 @@ em {
 /* ---------------------------------- credibilidade ---------------------------------- */
 
 .credibilidade {
-  max-width: var(--largura-max);
-  margin: 0 auto;
-  padding: clamp(3rem, 7vw, 5rem) 1.25rem;
+  width: 100%;
+  padding: clamp(3rem, 7vw, 5rem) var(--respiro-lateral);
   border-top: 1px solid var(--borda);
   display: grid;
   gap: 2.5rem;
@@ -268,9 +285,8 @@ em {
 /* ---------------------------------- processo ---------------------------------- */
 
 .processo {
-  max-width: var(--largura-max);
-  margin: 0 auto;
-  padding: clamp(3rem, 7vw, 5rem) 1.25rem;
+  width: 100%;
+  padding: clamp(3rem, 7vw, 5rem) var(--respiro-lateral);
   border-top: 1px solid var(--borda);
 }
 
@@ -323,9 +339,8 @@ em {
 /* ---------------------------------- portfólio ---------------------------------- */
 
 .portfolio {
-  max-width: var(--largura-max);
-  margin: 0 auto;
-  padding: clamp(3rem, 7vw, 5rem) 1.25rem;
+  width: 100%;
+  padding: clamp(3rem, 7vw, 5rem) var(--respiro-lateral);
   border-top: 1px solid var(--borda);
 }
 
@@ -418,9 +433,8 @@ em {
 /* ---------------------------------- contato ---------------------------------- */
 
 .contato {
-  max-width: var(--largura-max);
-  margin: 0 auto;
-  padding: clamp(4rem, 10vw, 7rem) 1.25rem;
+  width: 100%;
+  padding: clamp(4rem, 10vw, 7rem) var(--respiro-lateral);
   border-top: 1px solid var(--borda);
   text-align: center;
 }
@@ -463,9 +477,8 @@ em {
 /* ---------------------------------- footer ---------------------------------- */
 
 .footer {
-  max-width: var(--largura-max);
-  margin: 0 auto;
-  padding: 1.6rem 1.25rem 2.4rem;
+  width: 100%;
+  padding: 1.6rem var(--respiro-lateral) 2.4rem;
   display: flex;
   justify-content: space-between;
   color: var(--fg-muted);
@@ -498,5 +511,19 @@ em {
   }
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* Abaixo de 374px o header quebra em duas linhas e fica mais alto. */
+@media (max-width: 373px) {
+  :root { --h-header: 5.15rem; }
+}
+
+/* Tela baixa (notebook antigo, celular deitado): reduz o respiro vertical do
+   hero para o conteudo caber na primeira dobra em vez de vazar alguns pixels. */
+@media (max-height: 820px) {
+  .hero {
+    padding-top: clamp(1.5rem, 4vh, 2.5rem);
+    padding-bottom: clamp(1.5rem, 4vh, 2.5rem);
   }
 }

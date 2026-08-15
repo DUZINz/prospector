@@ -7,6 +7,13 @@
   --laranja-2: #ff7940;
   --display: 'Anton', sans-serif;
   --texto: 'Barlow', sans-serif;
+
+  /* Layout de tela cheia */
+  --largura-max: 1200px;
+  --gutter: 1.5rem;
+  /* Secao ocupa 100% da tela; o padding cresce para centralizar o conteudo. */
+  --respiro-lateral: max(var(--gutter), calc((100% - var(--largura-max)) / 2));
+  --h-header: 69px;
 }
 
 * { box-sizing: border-box; }
@@ -84,7 +91,10 @@ a { color: inherit; text-decoration: none; }
 /* HERO */
 .hero {
   position: relative;
-  min-height: 92vh;
+  /* 100dvh (nao 100vh): no celular a barra de endereco entra na conta do vh
+     e corta o conteudo. A linha vh e fallback de navegador antigo. */
+  min-height: calc(100vh - var(--h-header));
+  min-height: calc(100dvh - var(--h-header));
   display: flex;
   align-items: flex-end;
 }
@@ -141,7 +151,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* SERVICOS */
-.servicos { max-width: 900px; margin: 0 auto; padding: 5rem 1.5rem 3rem; }
+.servicos { width: 100%; padding: 5rem max(var(--gutter), calc((100% - 900px) / 2)) 3rem; }
 .servicos__lista { list-style: none; margin: 0; padding: 0; }
 .servicos__item {
   display: flex;
@@ -185,9 +195,8 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   gap: 3rem;
-  padding: 5rem 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 5rem var(--respiro-lateral);
+  width: 100%;
 }
 .horario__tabela { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
 .horario__tabela td { padding: 0.7rem 0; border-bottom: 1px solid rgba(239,230,218,0.12); }
