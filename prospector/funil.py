@@ -13,23 +13,54 @@ abordado: e dado sensivel, esta no .gitignore e nao deve ser versionado.
 A sequencia de contato tem 3 mensagens e termina:
 
     estagio 0  nunca contatado          -> manda a abordagem inicial
-    estagio 1  1a mensagem enviada      -> espera DIAS_ATE_FOLLOWUP1
-    estagio 2  1o follow-up enviado     -> espera DIAS_ATE_FOLLOWUP2
+    estagio 1  1a mensagem enviada      -> espera HORAS_ATE_FOLLOWUP1
+    estagio 2  1o follow-up enviado     -> espera HORAS_ATE_FOLLOWUP2
     estagio 3  2o follow-up enviado     -> encerrado, nao insiste mais
+
+O prazo e contado em HORAS, e as datas sao gravadas com hora ("2026-08-20T
+14:30:00"). Contar em dias nao daria conta de "48h depois do envio": duas
+mensagens no mesmo dia civil dariam 0 dia de diferenca.
 """
 
 from __future__ import annotations
 
+import math
 import sqlite3
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-# Dias de espera antes de liberar a proxima mensagem. Ajuste aqui.
-DIAS_ATE_FOLLOWUP1 = 4  # apos a 1a mensagem
-DIAS_ATE_FOLLOWUP2 = 6  # apos o 1o follow-up (~10 dias desde o inicio)
+# Espera antes de liberar a proxima mensagem, em HORAS. Ajuste aqui.
+HORAS_ATE_FOLLOWUP1 = 48  # apos a 1a mensagem
+HORAS_ATE_FOLLOWUP2 = 72  # apos o 1o follow-up (~5 dias desde o inicio)
 
-ESTAGIO_FINAL = 3  # sequencia encerrada
+# Ate onde a cadencia vai. 3 = duas cobrancas; baixe para 2 se quiser que cada
+# lead receba no maximo um follow-up.
+ESTAGIO_FINAL = 3
+
+# Nome do estagio. O estagio e a unica fonte da verdade sobre a cadencia — o
+# status nomeado e derivado dele, nunca uma segunda coluna que pode divergir.
+STATUS_POR_ESTAGIO = {
+    0: "novo",
+    1: "primeiro_contato_enviado",
+    2: "followup_enviado",
+    3: "followup_enviado",
+}
+
+# Statuses que voce move na mao e que congelam a cadencia: nao se insiste com
+# quem ja respondeu, nem com quem voce arquivou. Vale mais que o prazo.
+STATUS_ENCERRA_CADENCIA = {
+    "respondeu", "interessado", "arquivado",
+    # legado da tabela, mesmo sentido
+    "negociando", "fechado", "descartado",
+}
+
+
+def status_do_estagio(estagio, status_atual: str = "") -> str:
+    """Status nomeado do lead: o que voce marcou na mao vence a cadencia."""
+    if status_atual in STATUS_ENCERRA_CADENCIA:
+        return status_atual
+    return STATUS_POR_ESTAGIO.get(int(estagio or 0), "followup_enviado")
 
 BANCO = Path(__file__).resolve().parent / "funil.db"
 
@@ -131,17 +162,18 @@ def registrar_envio(con: sqlite3.Connection, lead: dict, quando: str = "") -> di
     Devolve o registro atualizado (ja gravado), para o chamador refletir na
     sessao sem precisar reconsultar.
     """
-    hoje = quando or date.today().isoformat()
+    agora_iso = quando or datetime.now().isoformat(timespec="seconds")
     atual = buscar(con, lead["place_key"]) or {}
 
-    estagio = int(atual.get("estagio_contato") or lead.get("estagio_contato") or 0) + 1
-    primeiro = atual.get("data_primeiro_contato") or lead.get("data_primeiro_contato") or hoje
+    estagio_antes = int(atual.get("estagio_contato") or lead.get("estagio_contato") or 0)
+    # Trava do anti-spam: passado o fim da cadencia o estagio nao anda mais, e
+    # `acao_da_vez` devolve "concluido" — cada mensagem sai no maximo uma vez.
+    estagio = min(estagio_antes + 1, ESTAGIO_FINAL)
+    primeiro = atual.get("data_primeiro_contato") or lead.get("data_primeiro_contato") or agora_iso
 
-    status = lead.get("status") or atual.get("status") or "novo"
-    # Quem recebeu mensagem nao e mais "novo" — avanca sozinho, mas nao
-    # atropela um status que voce ja moveu na mao (negociando, fechado...).
-    if status == "novo" and estagio >= 1:
-        status = "contatado"
+    # O status acompanha o estagio sozinho, mas nao atropela o que voce moveu
+    # na mao (respondeu, interessado, arquivado...).
+    status = status_do_estagio(estagio, lead.get("status") or atual.get("status") or "")
 
     registro = {
         "place_key": lead["place_key"],
@@ -153,7 +185,7 @@ def registrar_envio(con: sqlite3.Connection, lead: dict, quando: str = "") -> di
         "observacoes": lead.get("observacoes") or atual.get("observacoes") or "",
         "estagio_contato": estagio,
         "data_primeiro_contato": primeiro,
-        "data_ultimo_contato": hoje,
+        "data_ultimo_contato": agora_iso,
     }
     upsert(con, registro)
     return registro
@@ -184,28 +216,38 @@ def registrar_edicao(con: sqlite3.Connection, lead: dict) -> None:
 # ------------------------------------------------------------ regra do funil
 
 
-def _dias_desde(data_iso: str, hoje: Optional[date] = None) -> Optional[int]:
-    if not data_iso:
+def _horas_desde(quando_iso: str, agora: Optional[datetime] = None) -> Optional[float]:
+    """Horas decorridas desde um carimbo ISO. None se nao der para ler.
+
+    `fromisoformat` le tanto "2026-08-20T14:30:00" quanto o "2026-08-20" puro
+    que os registros antigos gravavam — a data sozinha vale meia-noite dela.
+    """
+    if not quando_iso:
         return None
     try:
-        d = datetime.strptime(data_iso, "%Y-%m-%d").date()
+        marco = datetime.fromisoformat(quando_iso)
     except ValueError:
         return None
-    return ((hoje or date.today()) - d).days
+    return ((agora or datetime.now()) - marco).total_seconds() / 3600
+
+
+def prazo_do_estagio(estagio: int) -> int:
+    """Horas de espera que esse estagio exige antes da proxima mensagem."""
+    return HORAS_ATE_FOLLOWUP1 if int(estagio or 0) == 1 else HORAS_ATE_FOLLOWUP2
 
 
 def acao_da_vez(
-    estagio: int, data_ultimo_contato: str = "", hoje: Optional[date] = None
+    estagio: int, data_ultimo_contato: str = "", agora: Optional[datetime] = None
 ) -> tuple[str, int]:
     """Qual mensagem esse lead deve receber agora — o coracao do follow-up.
 
-    Devolve (acao, dias_restantes):
+    Devolve (acao, horas_restantes):
 
         ("inicial", 0)       nunca contatado, manda a abordagem
-        ("followup1", 0)     passou o prazo depois da 1a mensagem
-        ("followup2", 0)     passou o prazo depois do 1o follow-up
-        ("aguardando", n)    dentro do prazo — faltam n dias
-        ("concluido", 0)     as 3 mensagens ja sairam, nao insiste mais
+        ("followup1", 0)     passaram HORAS_ATE_FOLLOWUP1 da 1a mensagem
+        ("followup2", 0)     passaram HORAS_ATE_FOLLOWUP2 do 1o follow-up
+        ("aguardando", n)    dentro do prazo — faltam n horas (arredondado p/ cima)
+        ("concluido", 0)     a cadencia acabou, nao insiste mais
     """
     estagio = int(estagio or 0)
     if estagio <= 0:
@@ -213,51 +255,62 @@ def acao_da_vez(
     if estagio >= ESTAGIO_FINAL:
         return ("concluido", 0)
 
-    prazo = DIAS_ATE_FOLLOWUP1 if estagio == 1 else DIAS_ATE_FOLLOWUP2
-    passados = _dias_desde(data_ultimo_contato, hoje)
+    prazo = prazo_do_estagio(estagio)
+    passadas = _horas_desde(data_ultimo_contato, agora)
     # Sem data (registro antigo ou corrompido) preferimos liberar a mensagem a
     # travar o lead para sempre.
-    if passados is None or passados >= prazo:
+    if passadas is None or passadas >= prazo:
         return ("followup1" if estagio == 1 else "followup2", 0)
-    return ("aguardando", prazo - passados)
+    return ("aguardando", math.ceil(prazo - passadas))
 
 
-def esta_pronto(estagio: int, data_ultimo_contato: str = "", hoje: Optional[date] = None) -> bool:
+def esta_pronto(
+    estagio: int, data_ultimo_contato: str = "", agora: Optional[datetime] = None
+) -> bool:
     """True quando existe mensagem para enviar agora."""
-    acao, _ = acao_da_vez(estagio, data_ultimo_contato, hoje)
+    acao, _ = acao_da_vez(estagio, data_ultimo_contato, agora)
     return acao in ("inicial", "followup1", "followup2")
 
 
-def atraso_em_dias(
-    estagio: int, data_ultimo_contato: str = "", hoje: Optional[date] = None
+def atraso_em_horas(
+    estagio: int, data_ultimo_contato: str = "", agora: Optional[datetime] = None
 ) -> int:
-    """Ha quantos dias esse lead esta esperando alem do prazo. Ordena a fila."""
-    acao, _ = acao_da_vez(estagio, data_ultimo_contato, hoje)
+    """Ha quantas horas esse lead esta esperando alem do prazo. Ordena a fila."""
+    acao, _ = acao_da_vez(estagio, data_ultimo_contato, agora)
     if acao not in ("followup1", "followup2"):
         return 0
-    passados = _dias_desde(data_ultimo_contato, hoje)
-    if passados is None:
+    passadas = _horas_desde(data_ultimo_contato, agora)
+    if passadas is None:
         return 0
-    prazo = DIAS_ATE_FOLLOWUP1 if int(estagio) == 1 else DIAS_ATE_FOLLOWUP2
-    return max(0, passados - prazo)
+    return max(0, int(passadas - prazo_do_estagio(estagio)))
+
+
+def apto_a_followup(registro: dict, agora: Optional[datetime] = None) -> bool:
+    """O lead ja recebeu mensagem e o prazo venceu — pode cobrar de novo.
+
+    Tres portas: precisa ter entrado na cadencia (estagio >= 1), o prazo em
+    horas tem que ter vencido, e o status marcado na mao manda mais que tudo —
+    quem respondeu ou foi arquivado nao recebe cobranca.
+    """
+    if (registro.get("status") or "") in STATUS_ENCERRA_CADENCIA:
+        return False
+    estagio = int(registro.get("estagio_contato") or 0)
+    return estagio >= 1 and esta_pronto(
+        estagio, registro.get("data_ultimo_contato") or "", agora
+    )
 
 
 def listar_pendentes_followup(
-    con: sqlite3.Connection, hoje: Optional[date] = None
+    con: sqlite3.Connection, agora: Optional[datetime] = None
 ) -> list[dict]:
     """Quem ja esta no funil e passou do prazo — do mais atrasado ao mais recente.
 
     So follow-ups: a 1a mensagem sai de quem ainda nem entrou no banco, e essa
     lista vem da sessao (ver app.py).
     """
-    pendentes = [
-        r
-        for r in todos(con).values()
-        if esta_pronto(r["estagio_contato"], r["data_ultimo_contato"], hoje)
-        and int(r["estagio_contato"] or 0) >= 1
-    ]
+    pendentes = [r for r in todos(con).values() if apto_a_followup(r, agora)]
     pendentes.sort(
-        key=lambda r: atraso_em_dias(r["estagio_contato"], r["data_ultimo_contato"], hoje),
+        key=lambda r: atraso_em_horas(r["estagio_contato"], r["data_ultimo_contato"], agora),
         reverse=True,
     )
     return pendentes

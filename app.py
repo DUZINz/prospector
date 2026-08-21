@@ -50,6 +50,16 @@ def _con_funil():
 
 con_funil = _con_funil()
 
+# Status que a tela oferece. Os tres primeiros o funil move sozinho a cada
+# envio (ver funil.STATUS_POR_ESTAGIO); os tres seguintes voce marca na mao e
+# eles congelam a cadencia. Os ultimos sao valores antigos do banco: ficam na
+# lista so para o selectbox nao quebrar em quem ja tem esse status gravado.
+STATUS_OPCOES = [
+    "novo", "primeiro_contato_enviado", "followup_enviado",
+    "respondeu", "interessado", "arquivado",
+    "contatado", "negociando", "fechado", "descartado",
+]
+
 # Qual mensagem cada acao carrega, e como ela aparece na tabela.
 MODELO_DA_ACAO = {
     # None: a 1a mensagem vem de `modelo_inicial` (o pitch geral, com a tabela).
@@ -261,10 +271,7 @@ with f1:
 with f2:
     filtro_termo = st.selectbox("Categoria", ["(todas)"] + storage.valores_distintos(leads_db, "termo"))
 with f3:
-    filtro_status = st.multiselect(
-        "Status", ["novo", "contatado", "negociando", "fechado", "descartado"],
-        default=["novo"],
-    )
+    filtro_status = st.multiselect("Status", STATUS_OPCOES, default=["novo"])
 with f4:
     filtro_site = st.selectbox(
         "Site", list(FILTRO_SITE), index=0,
@@ -275,6 +282,12 @@ with f5:
     so_whatsapp = st.checkbox("So com WhatsApp", value=False)
     so_email = st.checkbox("So com e-mail", value=False)
     so_mei = st.checkbox("So MEI", value=False, help="Exige enriquecimento pela Receita.")
+    so_followup = st.checkbox(
+        "So aptos p/ follow-up", value=False,
+        help=f"Ja receberam mensagem e o prazo venceu "
+             f"({funil.HORAS_ATE_FOLLOWUP1}h apos a 1a, "
+             f"{funil.HORAS_ATE_FOLLOWUP2}h apos o 1o follow-up).",
+    )
 
 # Historico do funil por cima da sessao, ANTES de filtrar: sem isso um lead
 # que voce ja moveu para "contatado" voltaria como "novo" depois de refazer a
@@ -295,6 +308,11 @@ registros = storage.listar(leads_db, **filtros)
 if enriquecer_agora:
     rodar_enriquecimento(filtros, lote_receita)
     registros = storage.listar(leads_db, **filtros)
+
+# Fora do storage.listar de proposito: aptidao a follow-up depende do relogio
+# e do funil, nao dos campos do lead — e o storage nao conhece o funil.
+if so_followup:
+    registros = [r for r in registros if funil.apto_a_followup(r)]
 
 if not registros:
     st.info("Nenhum lead com esses filtros. Faca uma busca na barra lateral.")
@@ -361,7 +379,7 @@ for registro, (acao, faltam) in zip(registros, acoes):
         situacoes.append(f"pronto · {ROTULO_DA_ACAO[acao]}")
     elif acao == "aguardando":
         links.append("")
-        situacoes.append(f"aguardando ({faltam}d)")
+        situacoes.append(f"aguardando ({faltam}h)")
     else:
         links.append("")
         situacoes.append("sequência concluída")
@@ -382,7 +400,7 @@ if prontos:
                 "rotulo": ROTULO_DA_ACAO[acao],
                 "texto": preencher(modelo_do_lead(acao, r), r),
                 "link": montar_link_whatsapp(r, modelo_do_lead(acao, r)),
-                "atraso": funil.atraso_em_dias(
+                "atraso": funil.atraso_em_horas(
                     r.get("estagio_contato", 0), r.get("data_ultimo_contato", "")
                 ),
             }
@@ -439,7 +457,7 @@ if prontos:
         st.divider()
 
         for item in fila[:50]:
-            atraso = f" · {item['atraso']}d de atraso" if item["atraso"] else ""
+            atraso = f" · {item['atraso']}h de atraso" if item["atraso"] else ""
             col_a, col_b = st.columns([4, 1])
             col_a.markdown(f"**{item['nome']}** — {item['rotulo']}{atraso}")
             col_b.markdown(f"[abrir]({item['link']})")
@@ -575,9 +593,7 @@ editado = st.data_editor(
         "maps_url": st.column_config.LinkColumn("Maps", display_text="mapa"),
         "nota": st.column_config.NumberColumn("Nota", format="%.1f", width="small"),
         "avaliacoes": st.column_config.NumberColumn("Aval.", width="small"),
-        "status": st.column_config.SelectboxColumn(
-            "Status", options=["novo", "contatado", "negociando", "fechado", "descartado"],
-        ),
+        "status": st.column_config.SelectboxColumn("Status", options=STATUS_OPCOES),
         "observacoes": st.column_config.TextColumn("Notas", width="medium"),
         "place_key": None,
     },

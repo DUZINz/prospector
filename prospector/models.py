@@ -63,16 +63,19 @@ def normalizar_telefone(bruto):
     return e164, whats
 
 
-# 1o follow-up (~4 dias depois). Tom leve, nao repete a apresentacao e troca o
-# pedido "vamos conversar" por algo de atrito menor: so ver um exemplo.
+# 1o follow-up (48h depois da 1a mensagem). Reengajamento curto: nao repete a
+# apresentacao, retoma o que ja foi enviado e abre espaco para duvida.
 ABORDAGEM_FOLLOWUP1 = (
-    "Oi! Passando de novo por aqui — sei que a rotina é corrida.\n\n"
-    "Posso te mandar um exemplo pronto de como ficaria o site do {negocio}? "
-    "Sem compromisso nenhum, é só pra você ver a ideia. É rápido de eu montar."
+    "Fala{saudacao_nome}! Tudo bem?\n\n"
+    "Passando só para saber se você conseguiu dar uma olhada no catálogo e na "
+    "tabela de preços que te enviei outro dia.\n\n"
+    "Se tiver ficado com alguma dúvida sobre como funcionam os projetos ou "
+    "quiser bater um papo rápido sobre alguma demanda da {nome_empresa}, "
+    "estou por aqui!"
 )
 
-# 2o e ultimo follow-up. Curto, com saida facil: encerrar sem constranger deixa
-# a porta aberta para o lead voltar depois.
+# 2o e ultimo follow-up (72h depois do 1o). Curto, com saida facil: encerrar
+# sem constranger deixa a porta aberta para o lead voltar depois.
 ABORDAGEM_FOLLOWUP2 = (
     "Última mensagem por aqui, prometo 🙂\n\n"
     "Se não for o momento certo pro {negocio}, sem problema algum — fico à "
@@ -120,8 +123,8 @@ PITCH_GERAL = (
 TEMPLATES = {
     "Geral — apresentação + tabela de preços (PDF)": PITCH_GERAL,
     "Interesse demonstrado em sistema": PITCH_INTERESSE,
-    "Follow-up 1": ABORDAGEM_FOLLOWUP1,
-    "Follow-up 2": ABORDAGEM_FOLLOWUP2,
+    "Follow-up 1 — reengajamento (48h)": ABORDAGEM_FOLLOWUP1,
+    "Follow-up 2 — encerramento (72h)": ABORDAGEM_FOLLOWUP2,
 }
 
 
@@ -145,7 +148,8 @@ def preencher(modelo: str, lead: dict | None = None, **extras) -> str:
     """Troca as variaveis do template pelos dados do lead.
 
     Aceita {negocio}, {nome_lead}, {nome_empresa} (todos o nome do negocio: o
-    Maps nao separa pessoa de empresa), {link_site} e {saudacao}.
+    Maps nao separa pessoa de empresa), {link_site}, {saudacao} e
+    {saudacao_nome}.
     """
     lead = lead or {}
     nome = (lead.get("nome") or "").strip()
@@ -153,6 +157,9 @@ def preencher(modelo: str, lead: dict | None = None, **extras) -> str:
     variaveis = _Variaveis(
         # Sem nome a saudacao perde a virgula, em vez de virar "Olá, !".
         saudacao=f"Olá, {nome}!" if nome else "Olá!",
+        # Vocativo para colar depois de uma palavra: "Fala{saudacao_nome}!"
+        # vira "Fala, Padaria Sol!" ou so "Fala!" quando o lead nao tem nome.
+        saudacao_nome=f", {nome}" if nome else "",
         negocio=negocio,
         nome_lead=negocio,
         # "da {nome_empresa}" precisa de um fallback feminino que caiba na frase.
