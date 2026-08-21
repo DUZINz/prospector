@@ -19,18 +19,22 @@ import streamlit as st
 from prospector import cnpj as receita
 from prospector import funil
 from prospector import storage
+from prospector import whatsapp as zap
 from prospector.models import (
-    ABORDAGEM,
     ABORDAGEM_FOLLOWUP1,
     ABORDAGEM_FOLLOWUP2,
+    TABELA_PDF,
+    TEMPLATES,
     Lead,
     formatar_telefone,
+    modelo_inicial,
     montar_link_whatsapp,
+    preencher,
 )
 
 RAIZ = Path(__file__).resolve().parent
 
-st.set_page_config(page_title="Prospector — leads sem site", page_icon="🔎", layout="wide")
+st.set_page_config(page_title="Prospector — leads", page_icon="🔎", layout="wide")
 
 
 if "leads" not in st.session_state:
@@ -48,7 +52,8 @@ con_funil = _con_funil()
 
 # Qual mensagem cada acao carrega, e como ela aparece na tabela.
 MODELO_DA_ACAO = {
-    "inicial": ABORDAGEM,
+    # None: a 1a mensagem vem de `modelo_inicial` (o pitch geral, com a tabela).
+    "inicial": None,
     "followup1": ABORDAGEM_FOLLOWUP1,
     "followup2": ABORDAGEM_FOLLOWUP2,
 }
@@ -57,6 +62,11 @@ ROTULO_DA_ACAO = {
     "followup1": "follow-up 1",
     "followup2": "follow-up 2",
 }
+
+
+def modelo_do_lead(acao: str, lead: dict) -> str:
+    """Mensagem da vez para esse lead."""
+    return MODELO_DA_ACAO[acao] or modelo_inicial(lead)
 
 
 def rodar_busca(termo: str, regiao: str, maximo: int, apenas_sem_site: bool, visivel: bool):
@@ -143,7 +153,11 @@ regioes_txt = st.sidebar.text_area(
     help="Bairro traz mais resultados que cidade: o Maps corta a lista em ~120 por busca.",
 )
 maximo = st.sidebar.slider("Maximo de resultados por busca", 20, 120, 40, step=10)
-apenas_sem_site = st.sidebar.checkbox("Somente quem nao tem site", value=True)
+apenas_sem_site = st.sidebar.checkbox(
+    "Somente quem nao tem site", value=True,
+    help="Vale para a coleta. Desmarque para trazer tambem quem ja tem site e "
+         "poder oferecer sistema — o filtro *Site* da tela separa os dois.",
+)
 visivel = st.sidebar.checkbox(
     "Mostrar o navegador", value=False,
     help="Util para ver onde travou quando o Google muda o layout.",
@@ -237,9 +251,11 @@ def rodar_enriquecimento(filtros: dict, limite: int) -> None:
 
 # ------------------------------ painel principal ------------------------------
 
-st.title("🔎 Leads sem site proprio")
+st.title("🔎 Prospecção de leads")
 
-f1, f2, f3, f4 = st.columns(4)
+FILTRO_SITE = {"Sem site": False, "Com site": True, "Todos": None}
+
+f1, f2, f3, f4, f5 = st.columns(5)
 with f1:
     filtro_regiao = st.selectbox("Regiao", ["(todas)"] + storage.valores_distintos(leads_db, "regiao"))
 with f2:
@@ -250,6 +266,12 @@ with f3:
         default=["novo"],
     )
 with f4:
+    filtro_site = st.selectbox(
+        "Site", list(FILTRO_SITE), index=0,
+        help="Sem site: oferta de landing page/site. Com site: oferta de "
+             "sistema, automação, painel ou API.",
+    )
+with f5:
     so_whatsapp = st.checkbox("So com WhatsApp", value=False)
     so_email = st.checkbox("So com e-mail", value=False)
     so_mei = st.checkbox("So MEI", value=False, help="Exige enriquecimento pela Receita.")
@@ -259,37 +281,20 @@ with f4:
 # busca, e o filtro de status olharia o valor errado.
 funil.aplicar_em_sessao(con_funil, leads_db)
 
-registros = storage.listar(
-    leads_db,
-    regiao=None if filtro_regiao == "(todas)" else filtro_regiao,
-    termo=None if filtro_termo == "(todas)" else filtro_termo,
-    status=filtro_status or None,
-    apenas_sem_site=True,
-    com_whatsapp=so_whatsapp,
-    com_email=so_email,
-    apenas_mei=so_mei,
-)
+filtros = {
+    "regiao": None if filtro_regiao == "(todas)" else filtro_regiao,
+    "termo": None if filtro_termo == "(todas)" else filtro_termo,
+    "status": filtro_status or None,
+    "tem_site": FILTRO_SITE[filtro_site],
+    "com_whatsapp": so_whatsapp,
+    "com_email": so_email,
+    "apenas_mei": so_mei,
+}
+registros = storage.listar(leads_db, **filtros)
 
 if enriquecer_agora:
-    rodar_enriquecimento(
-        {
-            "regiao": None if filtro_regiao == "(todas)" else filtro_regiao,
-            "termo": None if filtro_termo == "(todas)" else filtro_termo,
-            "status": filtro_status or None,
-            "apenas_sem_site": True,
-        },
-        lote_receita,
-    )
-    registros = storage.listar(
-        leads_db,
-        regiao=None if filtro_regiao == "(todas)" else filtro_regiao,
-        termo=None if filtro_termo == "(todas)" else filtro_termo,
-        status=filtro_status or None,
-        apenas_sem_site=True,
-        com_whatsapp=so_whatsapp,
-        com_email=so_email,
-        apenas_mei=so_mei,
-    )
+    rodar_enriquecimento(filtros, lote_receita)
+    registros = storage.listar(leads_db, **filtros)
 
 if not registros:
     st.info("Nenhum lead com esses filtros. Faca uma busca na barra lateral.")
@@ -310,7 +315,7 @@ acoes = [
 # So entra quem tem WhatsApp valido: sem numero nao ha o que abrir.
 prontos = [
     (r, funil.acao_da_vez(r.get("estagio_contato", 0), r.get("data_ultimo_contato", ""))[0])
-    for r in storage.listar(leads_db, apenas_sem_site=True)
+    for r in storage.listar(leads_db)
 ]
 prontos = [(r, acao) for r, acao in prontos if acao in MODELO_DA_ACAO and r.get("whatsapp")]
 
@@ -347,12 +352,12 @@ visao["telefone"] = [
 # texto comum sem virar um link quebrado.
 links, situacoes = [], []
 for registro, (acao, faltam) in zip(registros, acoes):
-    nome, url = registro["nome"], registro.get("whatsapp") or ""
+    url = registro.get("whatsapp") or ""
     if not url:
         links.append("")
         situacoes.append("sem WhatsApp")
     elif acao in MODELO_DA_ACAO:
-        links.append(montar_link_whatsapp(nome, url, MODELO_DA_ACAO[acao]))
+        links.append(montar_link_whatsapp(registro, modelo_do_lead(acao, registro)))
         situacoes.append(f"pronto · {ROTULO_DA_ACAO[acao]}")
     elif acao == "aguardando":
         links.append("")
@@ -373,8 +378,10 @@ if prontos:
         (
             {
                 "nome": r["nome"],
+                "lead": r,
                 "rotulo": ROTULO_DA_ACAO[acao],
-                "link": montar_link_whatsapp(r["nome"], r["whatsapp"], MODELO_DA_ACAO[acao]),
+                "texto": preencher(modelo_do_lead(acao, r), r),
+                "link": montar_link_whatsapp(r, modelo_do_lead(acao, r)),
                 "atraso": funil.atraso_em_dias(
                     r.get("estagio_contato", 0), r.get("data_ultimo_contato", "")
                 ),
@@ -387,10 +394,49 @@ if prontos:
 
     with st.expander(f"📤 Fila de hoje — {len(fila)} mensagem(ns) pronta(s)", expanded=False):
         st.caption(
-            "Nada é enviado automaticamente: o botão só abre as conversas. "
-            "O envio continua sendo o seu clique dentro do WhatsApp. "
             "Esta fila ignora os filtros da tabela — ela é a lista do dia inteiro."
         )
+
+        # --- envio automatico, com o PDF anexado ---
+        # Uma sessao de navegador para o lote inteiro; quem envia e o WhatsApp
+        # Web dirigido pelo Playwright, entao o PDF sobe como documento mesmo.
+        col_qtd, col_int = st.columns(2)
+        quantos = col_qtd.number_input(
+            "Enviar quantos agora", 1, min(len(fila), 50), min(len(fila), 10),
+            help="Comece pequeno. Lote grande de mensagem igual é o que derruba número.",
+        )
+        # Botao de calibragem: o numero certo depende da idade e do histórico do
+        # seu chip. Se começar a cair entrega, aumente antes de reduzir volume.
+        intervalo = col_int.number_input("Segundos entre um envio e outro", 10, 300, 45)
+
+        if not TABELA_PDF.exists():
+            st.error(f"PDF não encontrado em {TABELA_PDF} — o envio sairia sem o anexo.")
+        elif st.button(f"📎 Enviar {quantos} com o PDF anexado", type="primary"):
+            lote = fila[: int(quantos)]
+            barra = st.progress(0.0, "abrindo o WhatsApp Web...")
+            enviados, falhas = 0, []
+            itens = [(i, it["lead"]["whatsapp"], it["texto"]) for i, it in enumerate(lote)]
+            for feitos, (i, erro) in enumerate(
+                zap.enviar_lote(itens, intervalo=float(intervalo)), start=1
+            ):
+                item = lote[i]
+                if erro:
+                    falhas.append(f"{item['nome']}: {erro}")
+                else:
+                    # So carimba o funil depois do envio confirmado — assim uma
+                    # falha no meio do lote nao "queima" o lead.
+                    registro = funil.registrar_envio(con_funil, item["lead"])
+                    for campo in funil.CAMPOS_MESCLADOS:
+                        leads_db[item["lead"]["place_key"]][campo] = registro[campo]
+                    enviados += 1
+                barra.progress(feitos / len(lote), f"{feitos} de {len(lote)} — {item['nome']}")
+            barra.empty()
+            st.success(f"{enviados} enviado(s) com {TABELA_PDF.name}.")
+            for falha in falhas:
+                st.warning(falha)
+            st.caption("Sessão nova? Rode `python -m prospector.whatsapp --login` uma vez.")
+
+        st.divider()
 
         for item in fila[:50]:
             atraso = f" · {item['atraso']}d de atraso" if item["atraso"] else ""
@@ -402,6 +448,7 @@ if prontos:
             st.caption(f"...e mais {len(fila) - 50}. Use os filtros para trabalhar em lotes.")
 
         st.divider()
+        st.caption("Ou abra as conversas e envie na mão — aqui o PDF vai no clipe.")
         # window.open em sequencia, com folga entre um e outro: disparar tudo no
         # mesmo instante faz o navegador tratar como enxurrada de pop-up.
         urls_json = json.dumps([i["link"] for i in fila[:50]])
@@ -443,6 +490,55 @@ if prontos:
             "⚠️ Na primeira vez o navegador vai pedir permissão de pop-up — é o "
             "comportamento normal ao abrir várias abas de uma vez. Permita para "
             "`web.whatsapp.com` e clique de novo."
+        )
+
+# ------------------------------ mensagens prontas ------------------------------
+
+# Copia rapida fora do fluxo do funil: escolha o lead, escolha o pitch, copie.
+# O botao de copiar e o nativo do st.code — nao ha JS proprio aqui.
+with st.expander("💬 Mensagens prontas", expanded=False):
+    # Selecionado pela place_key, nao pelo dict: o lead muda de status durante a
+    # sessao e o Streamlit perderia a selecao ao comparar dicts diferentes.
+    por_chave = {r["place_key"]: r for r in registros}
+    lead_escolhido = por_chave[
+        st.selectbox(
+            "Lead", list(por_chave),
+            format_func=lambda k: f"{por_chave[k]['nome']} — "
+                                  f"{'com site' if por_chave[k]['tem_site'] else 'sem site'}",
+        )
+    ]
+    nome_modelo = st.selectbox(
+        "Template", list(TEMPLATES),
+        help="Variáveis: {saudacao}, {nome_lead}, {nome_empresa}, {negocio}, {link_site}.",
+    )
+    modelo = TEMPLATES[nome_modelo]
+
+    st.code(preencher(modelo, lead_escolhido), language=None, wrap_lines=True)
+
+    link_direto = montar_link_whatsapp(lead_escolhido, modelo)
+    if link_direto:
+        st.markdown(f"[Abrir no WhatsApp com essa mensagem]({link_direto})")
+    else:
+        st.caption("Sem WhatsApp válido — copie o texto acima e envie por e-mail.")
+
+    # O link acima leva so o texto. Para o PDF sair junto, quem envia e o
+    # Playwright dirigindo o WhatsApp Web (perfil logado uma vez com --login).
+    if "anexo" in modelo and link_direto:
+        if not TABELA_PDF.exists():
+            st.error(f"PDF não encontrado em {TABELA_PDF} — a mensagem cita um anexo que não existe.")
+        elif st.button("📤 Enviar com o PDF anexado", type="primary"):
+            with st.spinner("Abrindo o WhatsApp Web e enviando..."):
+                try:
+                    zap.enviar(link_direto, preencher(modelo, lead_escolhido))
+                    st.success(f"Mensagem + {TABELA_PDF.name} enviados.")
+                except Exception as erro:  # rede, seletor mudado, sessao caida
+                    st.error(f"Não enviou: {erro}")
+                    st.caption("Sessão nova? Rode `python -m prospector.whatsapp --login` uma vez.")
+        st.download_button(
+            "📄 Baixar a tabela (envio manual)",
+            TABELA_PDF.read_bytes(),
+            file_name=TABELA_PDF.name,
+            mime="application/pdf",
         )
 
 editado = st.data_editor(
@@ -540,14 +636,14 @@ with c1:
 exportar = editado.drop(columns=["place_key"])
 with c2:
     st.download_button(
-        "Excel", para_excel(exportar), "leads_sem_site.xlsx",
+        "Excel", para_excel(exportar), "leads.xlsx",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
     )
 with c3:
     st.download_button(
         "CSV", exportar.to_csv(index=False).encode("utf-8-sig"),
-        "leads_sem_site.csv", "text/csv",
+        "leads.csv", "text/csv",
     )
 
 st.caption(
