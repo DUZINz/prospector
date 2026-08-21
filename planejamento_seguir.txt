@@ -1,3 +1,2 @@
-criar portfólio
-criar site com base nos dados do cliente
-mandar mensagem resolvendo uma dor do cliente e mostrando o site base, esqueleto
+implementar alguns cases de sistema modelo no meu site
+criar um documento com tabela de preços

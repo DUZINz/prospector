@@ -163,7 +163,7 @@ estágio 3  2º follow-up enviado  →  encerrado, não insiste mais
 ```
 
 Os prazos são constantes no topo de `prospector/funil.py`; os textos das três
-mensagens ficam em `prospector/models.py` (`ABORDAGEM`, `ABORDAGEM_FOLLOWUP1`,
+mensagens ficam em `prospector/models.py` (`PITCH_GERAL`, `ABORDAGEM_FOLLOWUP1`,
 `ABORDAGEM_FOLLOWUP2`).
 
 Na tabela, a coluna **WhatsApp** só vira link quando há mensagem liberada — a
