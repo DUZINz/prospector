@@ -168,9 +168,101 @@ function preencherAno() {
   if (el) el.textContent = `© ${new Date().getFullYear()}`;
 }
 
+
+/* ------------------------------ calculadora ------------------------------ */
+
+const MOEDA = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+
+/*
+ * Preço e prazo somam direto: base + cada módulo escolhido. Prazo em dias
+ * úteis, sem paralelismo — é estimativa de proposta, não cronograma.
+ */
+function calcularOrcamento(base, extras) {
+  return {
+    total: extras.reduce((s, m) => s + m.preco, base.preco),
+    dias: extras.reduce((s, m) => s + m.dias, base.dias),
+  };
+}
+
+function montarBriefing(base, extras) {
+  const { total, dias } = calcularOrcamento(base, extras);
+  const linhas = [
+    "Olá, Eduardo! Montei uma estimativa no seu site:",
+    "",
+    `Projeto: ${base.nome} — ${MOEDA.format(base.preco)}`,
+  ];
+  if (extras.length) {
+    linhas.push("", "Módulos extras:");
+    extras.forEach((m) => linhas.push(`• ${m.nome} — ${MOEDA.format(m.preco)}`));
+  }
+  linhas.push(
+    "",
+    `Total estimado: ${MOEDA.format(total)}`,
+    `Prazo estimado: ${dias} dias úteis`,
+    "",
+    "Podemos conversar sobre esse escopo?"
+  );
+  return linhas.join("\n");
+}
+
+function montarOpcao(item, indice, tipo) {
+  const multipla = tipo === "extra";
+  return `
+    <label class="opcao">
+      <input type="${multipla ? "checkbox" : "radio"}" name="${tipo}"
+             value="${indice}" ${!multipla && indice === 0 ? "checked" : ""} />
+      <span class="opcao__nome">${item.nome}</span>
+      <span class="opcao__preco">${multipla ? "+ " : ""}${MOEDA.format(item.preco)}</span>
+      <span class="opcao__prazo">${multipla ? "+" : ""}${item.dias} dias</span>
+    </label>`;
+}
+
+function lerSelecao(form) {
+  const dados = new FormData(form);
+  return {
+    base: BASES_PROJETO[Number(dados.get("base"))] || BASES_PROJETO[0],
+    extras: dados.getAll("extra").map((i) => MODULOS_EXTRAS[Number(i)]),
+  };
+}
+
+function atualizarResumo(form) {
+  const { base, extras } = lerSelecao(form);
+  const { total, dias } = calcularOrcamento(base, extras);
+
+  document.getElementById("calc-total").textContent = MOEDA.format(total);
+  document.getElementById("calc-prazo").textContent = `Entrega em até ${dias} dias úteis`;
+  document.getElementById("calc-itens").innerHTML = [base, ...extras]
+    .map((i) => `<li>${i.nome}</li>`)
+    .join("");
+  document
+    .getElementById("calc-cta")
+    .setAttribute("href", montarLinkWhatsapp(montarBriefing(base, extras)));
+}
+
+function renderizarCalculadora() {
+  const form = document.getElementById("calculadora");
+  if (!form || typeof BASES_PROJETO === "undefined") return;
+
+  document.getElementById("calc-bases").innerHTML = BASES_PROJETO.map((b, i) =>
+    montarOpcao(b, i, "base")
+  ).join("");
+  document.getElementById("calc-extras").innerHTML = MODULOS_EXTRAS.map((m, i) =>
+    montarOpcao(m, i, "extra")
+  ).join("");
+
+  form.addEventListener("change", () => atualizarResumo(form));
+  form.addEventListener("submit", (e) => e.preventDefault());
+  atualizarResumo(form);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   aplicarLinksDeContato();
   renderizarPortfolio();
+  renderizarCalculadora();
   ativarRevealOnScroll();
   preencherAno();
 });

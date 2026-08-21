@@ -133,6 +133,112 @@
       </div>
     </section>
 
+    <!-- ============ ANTES vs. DEPOIS ============ -->
+    <section class="casos" id="casos">
+      <h2 class="secao__titulo">Antes e depois</h2>
+      <p class="secao__intro">
+        O que muda no dia a dia quando o processo deixa de ser manual e vira
+        software próprio. Três situações que aparecem em quase todo negócio.
+      </p>
+
+      <div class="casos__grid">
+        <article class="caso" data-reveal>
+          <p class="caso__tipo">Automação operacional</p>
+          <h3 class="caso__nome">Planilhas e relatórios</h3>
+          <div class="caso__lado caso__lado--antes">
+            <span class="caso__rotulo">Antes</span>
+            <p>3 horas por dia preenchendo planilhas e conferindo relatórios à mão.</p>
+          </div>
+          <div class="caso__lado caso__lado--depois">
+            <span class="caso__rotulo">Depois</span>
+            <p>Robô em código próprio que sincroniza os dados e dispara os
+               relatórios em segundos, com zero erro humano.</p>
+          </div>
+        </article>
+
+        <article class="caso" data-reveal>
+          <p class="caso__tipo">Atendimento 24/7</p>
+          <h3 class="caso__nome">Comercial no WhatsApp</h3>
+          <div class="caso__lado caso__lado--antes">
+            <span class="caso__rotulo">Antes</span>
+            <p>Demora para responder lead à noite e no fim de semana — e a venda
+               vai para quem respondeu primeiro.</p>
+          </div>
+          <div class="caso__lado caso__lado--depois">
+            <span class="caso__rotulo">Depois</span>
+            <p>Sistema com IA que atende na hora, tira dúvida do catálogo e já
+               cadastra o pedido.</p>
+          </div>
+        </article>
+
+        <article class="caso" data-reveal>
+          <p class="caso__tipo">Gestão de processos</p>
+          <h3 class="caso__nome">Ordens de serviço</h3>
+          <div class="caso__lado caso__lado--antes">
+            <span class="caso__rotulo">Antes</span>
+            <p>Pedido solto no chat, retrabalho e ninguém sabe o status de cada
+               cliente sem perguntar.</p>
+          </div>
+          <div class="caso__lado caso__lado--depois">
+            <span class="caso__rotulo">Depois</span>
+            <p>Painel centralizado com login, permissões por equipe, histórico
+               completo e métricas em tempo real.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ CALCULADORA ============ -->
+    <section class="calc" id="orcamento">
+      <h2 class="secao__titulo">Monte seu orçamento</h2>
+      <p class="secao__intro">
+        Escolha o tipo de projeto e os módulos que fazem sentido para o seu
+        negócio. O valor e o prazo aparecem na hora — e o briefing vai pronto
+        para o WhatsApp.
+      </p>
+
+      <div class="calc__layout">
+        <form class="calc__form" id="calculadora">
+          <fieldset class="calc__bloco">
+            <legend class="calc__legenda">1 · Tipo de projeto</legend>
+            <div class="calc__opcoes" id="calc-bases">
+              <!-- Inserido via JS a partir de BASES_PROJETO (data/precos.js) -->
+            </div>
+          </fieldset>
+
+          <fieldset class="calc__bloco">
+            <legend class="calc__legenda">2 · Módulos extras &amp; automações</legend>
+            <div class="calc__opcoes" id="calc-extras">
+              <!-- Inserido via JS a partir de MODULOS_EXTRAS (data/precos.js) -->
+            </div>
+          </fieldset>
+        </form>
+
+        <aside class="calc__resumo">
+          <p class="calc__resumo-rotulo">Investimento estimado</p>
+          <p class="calc__total" id="calc-total" aria-live="polite">R$ 620</p>
+          <p class="calc__prazo" id="calc-prazo">Entrega em até 3 dias úteis</p>
+
+          <ul class="calc__itens" id="calc-itens"></ul>
+
+          <a href="#" class="btn btn--zap btn--grande calc__cta" id="calc-cta"
+             target="_blank" rel="noopener">
+            Solicitar este projeto no WhatsApp
+          </a>
+
+          <ul class="calc__garantias">
+            <li>Preço e escopo fechados</li>
+            <li>Código 100% seu</li>
+            <li>Publicação inclusa</li>
+          </ul>
+          <p class="calc__nota">
+            Estimativa da Tabela 2026.2. O valor final é confirmado depois da
+            conversa inicial, sem surpresa no meio do caminho.
+          </p>
+        </aside>
+      </div>
+    </section>
+
     <!-- ============ CONTATO ============ -->
     <section class="contato" id="contato">
       <h2 class="contato__titulo">
@@ -159,6 +265,7 @@
   </footer>
 
   <script src="data/projetos.js"></script>
+  <script src="data/precos.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>
