@@ -58,7 +58,11 @@ def salvar(leads_db: dict, leads: Iterable[Lead]) -> tuple[int, int]:
 
 
 def listar(leads_db: dict, **filtros) -> list[dict]:
-    """Filtros: status, regiao, termo, apenas_sem_site, com_whatsapp, com_email, apenas_mei."""
+    """Filtros: status, regiao, termo, tem_site, com_whatsapp, com_email, apenas_mei.
+
+    `tem_site` e tri-estado: False so quem nao tem site, True so quem tem,
+    None (ou ausente) traz todos.
+    """
     registros = list(leads_db.values())
 
     if filtros.get("status"):
@@ -68,8 +72,9 @@ def listar(leads_db: dict, **filtros) -> list[dict]:
         registros = [r for r in registros if r["regiao"] == filtros["regiao"]]
     if filtros.get("termo"):
         registros = [r for r in registros if r["termo"] == filtros["termo"]]
-    if filtros.get("apenas_sem_site"):
-        registros = [r for r in registros if not r["tem_site"]]
+    if filtros.get("tem_site") is not None:
+        alvo_site = bool(filtros["tem_site"])
+        registros = [r for r in registros if bool(r["tem_site"]) is alvo_site]
     if filtros.get("com_whatsapp"):
         registros = [r for r in registros if r["whatsapp"]]
     if filtros.get("com_email"):
