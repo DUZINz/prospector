@@ -6,6 +6,7 @@ import hashlib
 import re
 from dataclasses import asdict, dataclass, field
 from datetime import date
+from pathlib import Path
 from typing import Optional
 from urllib.parse import quote
 
@@ -62,21 +63,6 @@ def normalizar_telefone(bruto):
     return e164, whats
 
 
-# Mensagem de abordagem. Enxuta de proposito: vai inteira dentro da URL do
-# wa.me, e link muito longo trava em alguns celulares.
-ABORDAGEM = (
-    "Olá! Meu nome é Eduardo Grunitzky.\n\n"
-    "Conheci o {negocio} e achei o trabalho de vocês muito interessante — mas "
-    "notei que ainda não tem um site à altura do que vocês oferecem.\n\n"
-    "Crio sites sob medida para negócios como o de vocês: mais confiança para "
-    "quem procura, mais clientes chegando e o trabalho de vocês bem apresentado.\n\n"
-    "Meu portfólio: https://portfolio-murex-alpha-23.vercel.app/\n"
-    "(os projetos de lá são modelos de demonstração que montei para mostrar o "
-    "estilo do trabalho — não são os sites finais entregues a clientes)\n\n"
-    "Se fizer sentido, seria um prazer conversar sobre o {negocio}."
-)
-
-
 # 1o follow-up (~4 dias depois). Tom leve, nao repete a apresentacao e troca o
 # pedido "vamos conversar" por algo de atrito menor: so ver um exemplo.
 ABORDAGEM_FOLLOWUP1 = (
@@ -90,29 +76,106 @@ ABORDAGEM_FOLLOWUP1 = (
 ABORDAGEM_FOLLOWUP2 = (
     "Última mensagem por aqui, prometo 🙂\n\n"
     "Se não for o momento certo pro {negocio}, sem problema algum — fico à "
-    "disposição quando fizer sentido. Se quiser dar uma olhada, o link continua "
-    "o mesmo: https://portfolio-murex-alpha-23.vercel.app/"
+    "disposição quando fizer sentido — a tabela de preços continua valendo."
 )
 
 
-def montar_link_whatsapp(
-    nome_negocio: str, whatsapp_url: str, modelo: str = ABORDAGEM
-) -> str:
-    """Acrescenta ao link puro do wa.me a mensagem ja preenchida com o nome do lead.
+# Para quem ja demonstrou interesse em ter um sistema. Nao reapresenta nada:
+# vai direto ao proximo passo, que e o escopo.
+PITCH_INTERESSE = (
+    "Que bom que fez sentido! 🙂\n\n"
+    "Para eu montar um escopo do sistema do {negocio}, preciso de três coisas:\n"
+    "1. Qual processo o sistema precisa resolver primeiro\n"
+    "2. Quantas pessoas vão usar\n"
+    "3. Se precisa conversar com algum sistema que vocês já usam\n\n"
+    "Com isso eu te devolvo escopo, prazo e valor — sem compromisso."
+)
 
-    `whatsapp_url` e o link que `normalizar_telefone` devolve. Vazio entra,
-    vazio sai: quem nao tem WhatsApp valido continua sem link.
+# PDF da tabela de precos. O wa.me so leva texto, entao o anexo e sempre um
+# clique manual — aqui a gente so garante que o arquivo existe e entrega ele.
+TABELA_PDF = Path(__file__).resolve().parent.parent / "EG-Tabela-de-Precos-2026.2.pdf"
 
-    `modelo` escolhe qual mensagem vai no link — a abordagem inicial (padrao)
-    ou um dos follow-ups.
+# Template geral: apresentacao ampla de solucoes, com a tabela em anexo. Nao
+# depende de o lead ter site ou nao.
+PITCH_GERAL = (
+    "{saudacao} Tudo bem?\n\n"
+    "Me chamo Eduardo Grunitzky, sou desenvolvedor de software e crio soluções "
+    "digitais sob medida para empresas — desde sistemas internos de gestão, "
+    "automações de processos e IA, até aplicativos e sites de alta conversão.\n\n"
+    "🌐 Meu portfólio: https://portfolio-murex-alpha-23.vercel.app/\n"
+    "(os projetos lá são modelos de demonstração que montei para exemplificar "
+    "o padrão visual e de acabamento)\n\n"
+    "O meu modelo de trabalho é direto: escopo e preço fechados, código 100% "
+    "seu (sem ficar preso a mensalidades de plataformas) e entrega pronta "
+    "rodando no servidor.\n\n"
+    "📄 Estou te enviando em anexo a minha Tabela de Preços e Serviços 2026.2, "
+    "com prazos e valores transparentes para cada tipo de projeto.\n\n"
+    "Se fizer sentido para o momento da {nome_empresa} ou se tiver algum "
+    "processo que queira automatizar, fico à disposição para batermos um papo!"
+)
+
+
+
+# Templates disponiveis na tela, na ordem em que aparecem.
+TEMPLATES = {
+    "Geral — apresentação + tabela de preços (PDF)": PITCH_GERAL,
+    "Interesse demonstrado em sistema": PITCH_INTERESSE,
+    "Follow-up 1": ABORDAGEM_FOLLOWUP1,
+    "Follow-up 2": ABORDAGEM_FOLLOWUP2,
+}
+
+
+def modelo_inicial(lead: dict) -> str:
+    """Abertura unica: o pitch geral serve com ou sem site."""
+    return PITCH_GERAL
+
+
+class _Variaveis(dict):
+    """Variavel que o template pede e o lead nao tem vira string vazia.
+
+    Sem isto um `{link_site}` num lead sem site derrubaria o format com KeyError
+    no meio da montagem da tabela.
     """
+
+    def __missing__(self, chave: str) -> str:
+        return ""
+
+
+def preencher(modelo: str, lead: dict | None = None, **extras) -> str:
+    """Troca as variaveis do template pelos dados do lead.
+
+    Aceita {negocio}, {nome_lead}, {nome_empresa} (todos o nome do negocio: o
+    Maps nao separa pessoa de empresa), {link_site} e {saudacao}.
+    """
+    lead = lead or {}
+    nome = (lead.get("nome") or "").strip()
+    negocio = nome or "seu negócio"
+    variaveis = _Variaveis(
+        # Sem nome a saudacao perde a virgula, em vez de virar "Olá, !".
+        saudacao=f"Olá, {nome}!" if nome else "Olá!",
+        negocio=negocio,
+        nome_lead=negocio,
+        # "da {nome_empresa}" precisa de um fallback feminino que caiba na frase.
+        nome_empresa=nome or "sua empresa",
+        link_site=lead.get("site") or "",
+        **extras,
+    )
+    return modelo.format_map(variaveis)
+
+
+def montar_link_whatsapp(lead: dict, modelo: str = PITCH_GERAL) -> str:
+    """Link do wa.me com a mensagem ja preenchida com os dados do lead.
+
+    `lead` e o dict do lead (precisa de `nome`, `whatsapp` e, para o pitch de
+    sistemas, `site`). Sem WhatsApp valido, sai vazio.
+    """
+    whatsapp_url = lead.get("whatsapp") or ""
     if not whatsapp_url:
         return ""
 
-    negocio = (nome_negocio or "").strip() or "seu negócio"
     # safe="" para nao deixar passar "/" e "&" do nome do negocio, que quebrariam
     # o parametro. A quebra de linha vira %0A, que o WhatsApp entende.
-    texto = quote(modelo.format(negocio=negocio), safe="")
+    texto = quote(preencher(modelo, lead), safe="")
     return f"{whatsapp_url}?text={texto}"
 
 
