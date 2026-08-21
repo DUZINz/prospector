@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Mockup de CRM com pipeline de vendas em kanban">
+  <defs>
+    <style>
+      .bg{fill:#0f0d0b}.panel{fill:#151310}.card{fill:#1c1915}
+      .line{stroke:#2a2621;stroke-width:2;fill:none}
+      .txt{fill:#3a352d}.txt2{fill:#514a3f}.gold{fill:#d4a24c}.goldsoft{fill:#d4a24c;opacity:.16}
+      .lbl{font-family:Manrope,Segoe UI,sans-serif;font-size:19px;font-weight:700;fill:#a89f8f}
+      .col{font-family:Manrope,Segoe UI,sans-serif;font-size:16px;font-weight:700;fill:#a89f8f;letter-spacing:.06em}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="900"/>
+  <!-- topbar -->
+  <rect class="panel" x="0" y="0" width="1200" height="104"/>
+  <line class="line" x1="0" y1="104" x2="1200" y2="104"/>
+  <rect class="gold" x="48" y="46" width="34" height="34" rx="4"/>
+  <text class="lbl" x="98" y="66">Pipeline comercial</text>
+  <rect class="txt" x="820" y="48" width="200" height="34" rx="17"/>
+  <rect class="gold" x="1046" y="48" width="106" height="34" rx="6"/>
+
+  <g id="colunas">
+    <!-- col 1 -->
+    <rect class="panel" x="48" y="150" width="256" height="690" rx="10"/>
+    <text class="col" x="74" y="192">NOVOS LEADS</text>
+    <rect class="goldsoft" x="238" y="174" width="42" height="24" rx="12"/>
+    <g>
+      <rect class="card" x="70" y="216" width="212" height="112" rx="8"/><line class="line" x1="70" y1="216" x2="282" y2="216"/>
+      <rect class="gold" x="90" y="240" width="6" height="22" rx="3"/>
+      <rect class="txt2" x="108" y="244" width="118" height="12" rx="4"/>
+      <rect class="txt" x="90" y="278" width="164" height="10" rx="4"/>
+      <rect class="txt" x="90" y="300" width="96" height="10" rx="4"/>
+      <rect class="card" x="70" y="346" width="212" height="112" rx="8"/>
+      <rect class="gold" x="90" y="370" width="6" height="22" rx="3"/>
+      <rect class="txt2" x="108" y="374" width="92" height="12" rx="4"/>
+      <rect class="txt" x="90" y="408" width="150" height="10" rx="4"/>
+      <rect class="txt" x="90" y="430" width="112" height="10" rx="4"/>
+      <rect class="card" x="70" y="476" width="212" height="112" rx="8"/>
+      <rect class="gold" x="90" y="500" width="6" height="22" rx="3"/>
+      <rect class="txt2" x="108" y="504" width="134" height="12" rx="4"/>
+      <rect class="txt" x="90" y="538" width="128" height="10" rx="4"/>
+      <rect class="txt" x="90" y="560" width="88" height="10" rx="4"/>
+    </g>
+    <!-- col 2 -->
+    <rect class="panel" x="328" y="150" width="256" height="690" rx="10"/>
+    <text class="col" x="354" y="192">CONTATO FEITO</text>
+    <rect class="txt" x="518" y="174" width="42" height="24" rx="12"/>
+    <g>
+      <rect class="card" x="350" y="216" width="212" height="112" rx="8"/>
+      <rect class="txt2" x="370" y="244" width="126" height="12" rx="4"/>
+      <rect class="txt" x="370" y="278" width="158" height="10" rx="4"/>
+      <rect class="txt" x="370" y="300" width="104" height="10" rx="4"/>
+      <rect class="card" x="350" y="346" width="212" height="112" rx="8"/>
+      <rect class="txt2" x="370" y="374" width="104" height="12" rx="4"/>
+      <rect class="txt" x="370" y="408" width="142" height="10" rx="4"/>
+      <rect class="txt" x="370" y="430" width="90" height="10" rx="4"/>
+    </g>
+    <!-- col 3 (card em arraste, destacado) -->
+    <rect class="panel" x="608" y="150" width="256" height="690" rx="10"/>
+    <text class="col" x="634" y="192">PROPOSTA</text>
+    <rect class="goldsoft" x="798" y="174" width="42" height="24" rx="12"/>
+    <g>
+      <rect class="card" x="630" y="216" width="212" height="112" rx="8" stroke="#d4a24c" stroke-width="2"/>
+      <rect class="gold" x="650" y="240" width="6" height="22" rx="3"/>
+      <rect class="txt2" x="668" y="244" width="112" height="12" rx="4"/>
+      <rect class="txt" x="650" y="278" width="166" height="10" rx="4"/>
+      <rect class="goldsoft" x="650" y="298" width="88" height="20" rx="10"/>
+      <rect class="card" x="630" y="346" width="212" height="112" rx="8"/>
+      <rect class="txt2" x="650" y="374" width="140" height="12" rx="4"/>
+      <rect class="txt" x="650" y="408" width="120" height="10" rx="4"/>
+      <rect class="txt" x="650" y="430" width="150" height="10" rx="4"/>
+      <rect class="card" x="630" y="476" width="212" height="112" rx="8"/>
+      <rect class="txt2" x="650" y="504" width="98" height="12" rx="4"/>
+      <rect class="txt" x="650" y="538" width="146" height="10" rx="4"/>
+      <rect class="txt" x="650" y="560" width="96" height="10" rx="4"/>
+    </g>
+    <!-- col 4 -->
+    <rect class="panel" x="888" y="150" width="256" height="690" rx="10"/>
+    <text class="col" x="914" y="192">FECHADO</text>
+    <rect class="goldsoft" x="1078" y="174" width="42" height="24" rx="12"/>
+    <g>
+      <rect class="card" x="910" y="216" width="212" height="112" rx="8"/>
+      <rect class="gold" x="930" y="240" width="6" height="22" rx="3"/>
+      <rect class="txt2" x="948" y="244" width="120" height="12" rx="4"/>
+      <rect class="gold" x="930" y="278" width="76" height="14" rx="4" opacity=".7"/>
+      <rect class="txt" x="930" y="306" width="132" height="10" rx="4"/>
+      <rect class="card" x="910" y="346" width="212" height="112" rx="8"/>
+      <rect class="txt2" x="930" y="374" width="108" height="12" rx="4"/>
+      <rect class="gold" x="930" y="408" width="62" height="14" rx="4" opacity=".7"/>
+      <rect class="txt" x="930" y="436" width="118" height="10" rx="4"/>
+    </g>
+  </g>
+</svg>

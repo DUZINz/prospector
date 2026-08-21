@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Mockup de hub de atendimento de WhatsApp com assistente de IA">
+  <defs>
+    <style>
+      .bg{fill:#0f0d0b}.panel{fill:#151310}.line{stroke:#2a2621;stroke-width:2;fill:none}
+      .bolha{fill:#1c1915}.txt{fill:#3a352d}.txt2{fill:#514a3f}
+      .gold{fill:#d4a24c}.goldsoft{fill:#d4a24c;opacity:.16}
+      .lbl{font-family:Manrope,Segoe UI,sans-serif;font-size:19px;font-weight:700;fill:#a89f8f}
+      .cap{font-family:Manrope,Segoe UI,sans-serif;font-size:14px;font-weight:700;fill:#6b6255;letter-spacing:.08em}
+      .ia{font-family:Manrope,Segoe UI,sans-serif;font-size:14px;font-weight:700;fill:#d4a24c;letter-spacing:.08em}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="900"/>
+  <rect class="panel" x="0" y="0" width="1200" height="104"/>
+  <line class="line" x1="0" y1="104" x2="1200" y2="104"/>
+  <rect class="gold" x="48" y="46" width="34" height="34" rx="4"/>
+  <text class="lbl" x="98" y="66">Atendimento centralizado</text>
+  <rect class="goldsoft" x="936" y="48" width="216" height="34" rx="17"/>
+  <text class="ia" x="962" y="70">IA ATIVA &#183; 24H</text>
+
+  <!-- lista de conversas -->
+  <rect class="panel" x="0" y="104" width="330" height="796"/>
+  <line class="line" x1="330" y1="104" x2="330" y2="900"/>
+  <rect class="txt" x="32" y="140" width="266" height="38" rx="19"/>
+  <g>
+    <rect class="goldsoft" x="16" y="206" width="298" height="96" rx="8"/>
+    <circle cx="64" cy="254" r="24" fill="#2a2621"/>
+    <circle cx="64" cy="254" r="24" fill="#d4a24c" opacity=".25"/>
+    <rect class="txt2" x="104" y="234" width="126" height="12" rx="4"/>
+    <rect class="txt"  x="104" y="260" width="180" height="10" rx="4"/>
+    <circle cx="292" cy="232" r="9" fill="#d4a24c"/>
+  </g>
+  <g class="txt">
+    <circle cx="64" cy="368" r="24" fill="#221f1b"/>
+    <rect x="104" y="348" width="112" height="12" rx="4" fill="#514a3f"/><rect x="104" y="374" width="164" height="10" rx="4"/>
+    <circle cx="64" cy="482" r="24" fill="#221f1b"/>
+    <rect x="104" y="462" width="140" height="12" rx="4" fill="#514a3f"/><rect x="104" y="488" width="146" height="10" rx="4"/>
+    <circle cx="64" cy="596" r="24" fill="#221f1b"/>
+    <rect x="104" y="576" width="98"  height="12" rx="4" fill="#514a3f"/><rect x="104" y="602" width="172" height="10" rx="4"/>
+    <circle cx="64" cy="710" r="24" fill="#221f1b"/>
+    <rect x="104" y="690" width="130" height="12" rx="4" fill="#514a3f"/><rect x="104" y="716" width="152" height="10" rx="4"/>
+  </g>
+
+  <!-- cabecalho da conversa -->
+  <line class="line" x1="330" y1="188" x2="1200" y2="188"/>
+  <circle cx="386" cy="146" r="22" fill="#2a2621"/>
+  <rect class="txt2" x="424" y="132" width="150" height="14" rx="4"/>
+  <rect class="txt"  x="424" y="158" width="98"  height="10" rx="4"/>
+
+  <!-- bolha cliente -->
+  <rect class="bolha" x="370" y="232" width="392" height="92" rx="12"/>
+  <rect class="txt2" x="398" y="258" width="286" height="12" rx="4"/>
+  <rect class="txt"  x="398" y="284" width="196" height="12" rx="4"/>
+
+  <!-- bolha IA -->
+  <rect class="goldsoft" x="596" y="356" width="556" height="150" rx="12"/>
+  <text class="ia" x="624" y="390">RESPOSTA SUGERIDA PELA IA</text>
+  <rect class="gold" x="624" y="408" width="470" height="12" rx="4" opacity=".55"/>
+  <rect class="gold" x="624" y="434" width="418" height="12" rx="4" opacity=".4"/>
+  <rect class="gold" x="624" y="460" width="330" height="12" rx="4" opacity=".28"/>
+
+  <!-- bolha cliente 2 -->
+  <rect class="bolha" x="370" y="540" width="330" height="70" rx="12"/>
+  <rect class="txt2" x="398" y="566" width="240" height="12" rx="4"/>
+
+  <!-- bolha atendente -->
+  <rect class="bolha" x="700" y="642" width="452" height="92" rx="12"/>
+  <rect class="txt2" x="728" y="668" width="330" height="12" rx="4"/>
+  <rect class="txt"  x="728" y="694" width="248" height="12" rx="4"/>
+
+  <!-- campo de resposta -->
+  <line class="line" x1="330" y1="782" x2="1200" y2="782"/>
+  <rect class="panel" x="370" y="812" width="646" height="52" rx="26"/>
+  <rect class="txt" x="402" y="832" width="240" height="12" rx="4"/>
+  <rect class="gold" x="1040" y="812" width="112" height="52" rx="26"/>
+</svg>

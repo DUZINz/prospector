@@ -344,10 +344,63 @@ em {
   border-top: 1px solid var(--borda);
 }
 
+/* Barra de abas: rola na horizontal no celular em vez de quebrar linha. */
+.portfolio__filtros {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0 0 2.2rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+  scrollbar-width: none;
+}
+
+.portfolio__filtros::-webkit-scrollbar {
+  display: none;
+}
+
+.portfolio__filtros:empty {
+  display: none;
+}
+
+.filtro {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.6em 1.1em;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--fg-muted);
+  background: transparent;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.filtro:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+.filtro.is-ativo {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #171310;
+}
+
+.filtro__contagem {
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+
 .portfolio__grid {
   display: grid;
   gap: 1.6rem;
   grid-template-columns: 1fr;
+  align-items: stretch;
 }
 
 @media (min-width: 700px) {
@@ -370,8 +423,13 @@ em {
   background: var(--bg-elevado);
   text-decoration: none;
   color: inherit;
-  display: block;
+  display: flex;
+  flex-direction: column;
   transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card[hidden] {
+  display: none;
 }
 
 .card:hover {
@@ -415,6 +473,18 @@ em {
 
 .card__corpo {
   padding: 1.3rem 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card__tipo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin: 0 0 0.4rem;
 }
 
 .card__nome {
@@ -428,6 +498,41 @@ em {
   color: var(--fg-muted);
   font-size: 0.92rem;
   margin: 0;
+}
+
+.card__tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.card__tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--fg-muted);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 0.3em 0.6em;
+}
+
+/* margin-top:auto encosta o CTA no rodape do card, alinhando os botoes
+   de cards de alturas diferentes na mesma linha do grid. */
+.card__acao {
+  align-self: flex-start;
+  margin-top: auto;
+  padding-top: 1.2rem;
+  border: 0;
+  padding-left: 0;
+  padding-right: 0;
+  color: var(--accent);
+}
+
+.card__acao:hover {
+  color: var(--accent-forte);
 }
 
 /* ---------------------------------- contato ---------------------------------- */

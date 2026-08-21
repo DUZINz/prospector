@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Mockup de dashboard financeiro com graficos de faturamento e fluxo de caixa">
+  <defs>
+    <style>
+      .bg{fill:#0f0d0b}.panel{fill:#151310}.line{stroke:#2a2621;stroke-width:2;fill:none}
+      .grid{stroke:#221f1b;stroke-width:2}
+      .txt{fill:#3a352d}.txt2{fill:#514a3f}.gold{fill:#d4a24c}.goldsoft{fill:#d4a24c;opacity:.2}
+      .lbl{font-family:Manrope,Segoe UI,sans-serif;font-size:19px;font-weight:700;fill:#a89f8f}
+      .big{font-family:Fraunces,Georgia,serif;font-size:34px;font-weight:600;fill:#f4f1ea}
+      .cap{font-family:Manrope,Segoe UI,sans-serif;font-size:14px;font-weight:700;fill:#6b6255;letter-spacing:.08em}
+      .pos{font-family:Manrope,Segoe UI,sans-serif;font-size:15px;font-weight:700;fill:#d4a24c}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="900"/>
+  <rect class="panel" x="0" y="0" width="1200" height="104"/>
+  <line class="line" x1="0" y1="104" x2="1200" y2="104"/>
+  <rect class="gold" x="48" y="46" width="34" height="34" rx="4"/>
+  <text class="lbl" x="98" y="66">Visao financeira</text>
+  <rect class="txt" x="944" y="48" width="208" height="34" rx="6"/>
+
+  <!-- KPI row -->
+  <g>
+    <rect class="panel" x="48" y="146" width="256" height="140" rx="8"/>
+    <text class="cap" x="76" y="184">FATURAMENTO / MES</text>
+    <text class="big" x="76" y="232">R$ 84.200</text>
+    <text class="pos" x="76" y="262">&#9650; 12,4%</text>
+
+    <rect class="panel" x="328" y="146" width="256" height="140" rx="8"/>
+    <text class="cap" x="356" y="184">A RECEBER</text>
+    <text class="big" x="356" y="232">R$ 21.750</text>
+    <rect class="txt" x="356" y="248" width="120" height="12" rx="4"/>
+
+    <rect class="panel" x="608" y="146" width="256" height="140" rx="8"/>
+    <text class="cap" x="636" y="184">TICKET MEDIO</text>
+    <text class="big" x="636" y="232">R$ 1.940</text>
+    <rect class="txt" x="636" y="248" width="96" height="12" rx="4"/>
+
+    <rect class="panel" x="888" y="146" width="256" height="140" rx="8"/>
+    <text class="cap" x="916" y="184">INADIMPLENCIA</text>
+    <text class="big" x="916" y="232">2,1%</text>
+    <rect class="goldsoft" x="916" y="246" width="140" height="20" rx="10"/>
+  </g>
+
+  <!-- barras -->
+  <rect class="panel" x="48" y="318" width="700" height="380" rx="8"/>
+  <text class="cap" x="76" y="356">FATURAMENTO POR MES</text>
+  <g class="grid">
+    <line x1="76" y1="620" x2="716" y2="620"/><line x1="76" y1="540" x2="716" y2="540"/>
+    <line x1="76" y1="460" x2="716" y2="460"/><line x1="76" y1="400" x2="716" y2="400"/>
+  </g>
+  <g>
+    <rect class="txt2" x="96"  y="524" width="52" height="96"  rx="3"/>
+    <rect class="txt2" x="176" y="490" width="52" height="130" rx="3"/>
+    <rect class="txt2" x="256" y="506" width="52" height="114" rx="3"/>
+    <rect class="txt2" x="336" y="452" width="52" height="168" rx="3"/>
+    <rect class="txt2" x="416" y="470" width="52" height="150" rx="3"/>
+    <rect class="gold"  x="496" y="412" width="52" height="208" rx="3"/>
+    <rect class="txt2" x="576" y="438" width="52" height="182" rx="3"/>
+    <rect class="txt2" x="656" y="480" width="52" height="140" rx="3"/>
+  </g>
+  <g class="txt">
+    <rect x="104" y="640" width="36" height="10" rx="4"/><rect x="184" y="640" width="36" height="10" rx="4"/>
+    <rect x="264" y="640" width="36" height="10" rx="4"/><rect x="344" y="640" width="36" height="10" rx="4"/>
+    <rect x="424" y="640" width="36" height="10" rx="4"/><rect x="504" y="640" width="36" height="10" rx="4"/>
+    <rect x="584" y="640" width="36" height="10" rx="4"/><rect x="664" y="640" width="36" height="10" rx="4"/>
+  </g>
+
+  <!-- fluxo de caixa -->
+  <rect class="panel" x="772" y="318" width="372" height="380" rx="8"/>
+  <text class="cap" x="800" y="356">FLUXO DE CAIXA</text>
+  <path d="M800 560 L 838 528 L 876 546 L 914 486 L 952 504 L 990 442 L 1028 458 L 1066 410 L 1104 424 L 1104 640 L 800 640 Z"
+        fill="#d4a24c" opacity=".10"/>
+  <path d="M800 560 L 838 528 L 876 546 L 914 486 L 952 504 L 990 442 L 1028 458 L 1066 410 L 1104 424"
+        fill="none" stroke="#d4a24c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1066" cy="410" r="7" fill="#d4a24c"/>
+  <line class="grid" x1="800" y1="640" x2="1116" y2="640"/>
+
+  <!-- alertas -->
+  <rect class="panel" x="48" y="730" width="1096" height="110" rx="8"/>
+  <rect class="gold" x="48" y="730" width="5" height="110" rx="2"/>
+  <text class="cap" x="82" y="770">ALERTAS OPERACIONAIS</text>
+  <rect class="txt2" x="82" y="788" width="360" height="12" rx="4"/>
+  <rect class="txt"  x="82" y="812" width="268" height="12" rx="4"/>
+  <rect class="goldsoft" x="946" y="768" width="170" height="34" rx="17"/>
+</svg>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Mockup de painel administrativo de ordens de serviço">
+  <defs>
+    <style>
+      .bg{fill:#0f0d0b}.panel{fill:#151310}.line{stroke:#2a2621;stroke-width:2;fill:none}
+      .txt{fill:#3a352d}.txt2{fill:#514a3f}.gold{fill:#d4a24c}.goldsoft{fill:#d4a24c;opacity:.18}
+      .lbl{font-family:Manrope,Segoe UI,sans-serif;font-size:19px;font-weight:700;fill:#a89f8f}
+      .lblg{font-family:Manrope,Segoe UI,sans-serif;font-size:17px;font-weight:700;fill:#d4a24c}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="900"/>
+  <!-- sidebar -->
+  <rect class="panel" x="0" y="0" width="230" height="900"/>
+  <line class="line" x1="230" y1="0" x2="230" y2="900"/>
+  <rect class="gold" x="40" y="46" width="34" height="34" rx="4"/>
+  <rect class="txt2" x="86" y="55" width="88" height="16" rx="4"/>
+  <rect class="goldsoft" x="24" y="130" width="182" height="46" rx="6"/>
+  <rect class="gold" x="42" y="146" width="14" height="14" rx="3"/>
+  <rect class="txt2" x="70" y="147" width="104" height="12" rx="4"/>
+  <g class="txt">
+    <rect x="42" y="200" width="14" height="14" rx="3"/><rect x="70" y="201" width="120" height="12" rx="4"/>
+    <rect x="42" y="248" width="14" height="14" rx="3"/><rect x="70" y="249" width="86" height="12" rx="4"/>
+    <rect x="42" y="296" width="14" height="14" rx="3"/><rect x="70" y="297" width="132" height="12" rx="4"/>
+    <rect x="42" y="344" width="14" height="14" rx="3"/><rect x="70" y="345" width="98" height="12" rx="4"/>
+  </g>
+  <!-- topbar -->
+  <line class="line" x1="230" y1="104" x2="1200" y2="104"/>
+  <text class="lbl" x="278" y="66">Ordens de Serviço</text>
+  <rect class="txt" x="800" y="48" width="220" height="34" rx="6"/>
+  <rect class="gold" x="1046" y="48" width="120" height="34" rx="6"/>
+  <!-- KPIs -->
+  <g>
+    <rect class="panel" x="278" y="146" width="272" height="110" rx="8"/><line class="line" x1="278" y1="146" x2="550" y2="146"/>
+    <rect class="txt" x="304" y="174" width="86" height="12" rx="4"/><rect class="gold" x="304" y="200" width="70" height="24" rx="4"/>
+    <rect class="panel" x="574" y="146" width="272" height="110" rx="8"/>
+    <rect class="txt" x="600" y="174" width="104" height="12" rx="4"/><rect class="txt2" x="600" y="200" width="58" height="24" rx="4"/>
+    <rect class="panel" x="870" y="146" width="272" height="110" rx="8"/>
+    <rect class="txt" x="896" y="174" width="76" height="12" rx="4"/><rect class="txt2" x="896" y="200" width="82" height="24" rx="4"/>
+  </g>
+  <!-- tabela -->
+  <rect class="panel" x="278" y="296" width="864" height="540" rx="8"/>
+  <line class="line" x1="278" y1="358" x2="1142" y2="358"/>
+  <g class="txt">
+    <rect x="306" y="322" width="70" height="12" rx="4"/><rect x="440" y="322" width="120" height="12" rx="4"/>
+    <rect x="700" y="322" width="90" height="12" rx="4"/><rect x="900" y="322" width="70" height="12" rx="4"/>
+  </g>
+  <g>
+    <g transform="translate(0,0)">
+      <rect class="txt2" x="306" y="392" width="54" height="12" rx="4"/><rect class="txt" x="440" y="392" width="176" height="12" rx="4"/>
+      <rect class="goldsoft" x="700" y="382" width="112" height="30" rx="15"/><rect class="gold" x="718" y="393" width="76" height="10" rx="5"/>
+      <rect class="txt" x="900" y="392" width="96" height="12" rx="4"/>
+    </g>
+    <line class="line" x1="306" y1="440" x2="1114" y2="440" opacity=".6"/>
+    <g transform="translate(0,72)">
+      <rect class="txt2" x="306" y="392" width="54" height="12" rx="4"/><rect class="txt" x="440" y="392" width="148" height="12" rx="4"/>
+      <rect class="txt" x="700" y="382" width="112" height="30" rx="15"/><rect class="txt2" x="718" y="393" width="66" height="10" rx="5"/>
+      <rect class="txt" x="900" y="392" width="112" height="12" rx="4"/>
+    </g>
+    <line class="line" x1="306" y1="512" x2="1114" y2="512" opacity=".6"/>
+    <g transform="translate(0,144)">
+      <rect class="txt2" x="306" y="392" width="54" height="12" rx="4"/><rect class="txt" x="440" y="392" width="200" height="12" rx="4"/>
+      <rect class="goldsoft" x="700" y="382" width="112" height="30" rx="15"/><rect class="gold" x="718" y="393" width="60" height="10" rx="5"/>
+      <rect class="txt" x="900" y="392" width="88" height="12" rx="4"/>
+    </g>
+    <line class="line" x1="306" y1="584" x2="1114" y2="584" opacity=".6"/>
+    <g transform="translate(0,216)">
+      <rect class="txt2" x="306" y="392" width="54" height="12" rx="4"/><rect class="txt" x="440" y="392" width="162" height="12" rx="4"/>
+      <rect class="txt" x="700" y="382" width="112" height="30" rx="15"/><rect class="txt2" x="718" y="393" width="72" height="10" rx="5"/>
+      <rect class="txt" x="900" y="392" width="104" height="12" rx="4"/>
+    </g>
+    <line class="line" x1="306" y1="656" x2="1114" y2="656" opacity=".6"/>
+    <g transform="translate(0,288)">
+      <rect class="txt2" x="306" y="392" width="54" height="12" rx="4"/><rect class="txt" x="440" y="392" width="188" height="12" rx="4"/>
+      <rect class="txt" x="700" y="382" width="112" height="30" rx="15"/><rect class="txt2" x="718" y="393" width="58" height="10" rx="5"/>
+      <rect class="txt" x="900" y="392" width="92" height="12" rx="4"/>
+    </g>
+  </g>
+  <text class="lblg" x="306" y="806">14 ordens abertas</text>
+</svg>
